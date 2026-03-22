@@ -2,22 +2,36 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# قاعدة البيانات الكبرى (النواة) - هنا سنجمع مئات النصوص بالدارجة والعربية
-TAOURIRT_BRAIN = {
-    # قسم العقار والتعمير (الأكثر طلباً)
-    "عقار": {
-        "keywords": ["حفظ", "محفظة", "تحفيظ", "بلان", "أرض", "بني", "رخصة"],
-        "answer": "⚖️ **منظومة العقار والتعمير:**<br>في تاوريرت، أي عملية بناء أو تحفيظ تبدأ من **الوكالة الحضرية**. <br>🔹 **بالدارجة:** إذا بغيتي تبني، ضروري 'البلان' من عند مهندس و 'الرخصة' من الجماعة. البناء بلا رخصة كايعرضك للهدم والخطية."
+# قاعدة البيانات الضخمة - "مرجع تاوريرت السيادي"
+# يمكنك إضافة مئات الخدمات هنا بنفس التنسيق
+SERVICES_DATABASE = {
+    "البطاقة الوطنية": {
+        "keywords": ["لاكارط", "بطاقة", "هوية", "cin"],
+        "docs": "شهادة السكنى (من الأمن)، عقد الازدياد، 4 صور خلفية رمادية.",
+        "cost": "75 درهم (تمبر إلكتروني).",
+        "time": "من 10 إلى 15 يوم عمل.",
+        "location": "المنطقة الإقليمية للأمن (قرب محطة القطار القديمة)."
     },
-    # قسم الوثائق الشخصية
-    "هوية": {
-        "keywords": ["بطاقة", "لاكارط", "باسبور", "جواز", "عقد", "إزدياد"],
-        "answer": "🆔 **الوثائق التعريفية:**<br>🔹 **البطاقة الوطنية:** التوجه لمفوضية الشرطة (قرب المحطة). <br>🔹 **الجواز:** الطلب عبر passport.ma والإيداع في المقاطعة التابع لها حيك في تاوريرت."
+    "جواز السفر": {
+        "keywords": ["باسبور", "سفر", "passport"],
+        "docs": "بطاقة التعريف الوطنية الأصلية، تمبر إلكتروني، صورتان فوتوغرافيتان.",
+        "cost": "300 درهم للصغار / 500 درهم للكبار.",
+        "time": "7 إلى 10 أيام.",
+        "location": "الملحقة الإدارية (المقاطعة) التابع لها محل سكنك."
     },
-    # قسم مغاربة العالم (مهم جداً للمدينة)
-    "جالية": {
-        "keywords": ["برا", "الغربة", "وكالة", "قنصلية", "جالية", "إقامة"],
-        "answer": "🌍 **خدمات مغاربة العالم:**<br>لإجراء أي غرض إداري من الخارج، يجب إرسال **'وكالة خاصة'** مصادق عليها. <br>🔹 **نصيحة:** يمكنكم طلب 'عقد الازدياد' و 'السجل العدلي' إلكترونياً عبر البوابات الرسمية دون عناء السفر."
+    "رخصة البناء": {
+        "keywords": ["بني", "بلان", "رخصة", "تعمير"],
+        "docs": "تصميم معماري، شهادة الملكية، تصميم طبوغرافي، كناش التحملات.",
+        "cost": "تختلف حسب المساحة (رسوم جماعية + واجبات الوكالة الحضرية).",
+        "time": "شهر إلى شهرين (حسب اللجنة).",
+        "location": "قسم التعمير بالجماعة الحضرية + الوكالة الحضرية."
+    },
+    "تصحيح الإمضاء": {
+        "keywords": ["إمضاء", "سينيي", "ليغاليزي", "legalisation"],
+        "docs": "الوثيقة الأصلية + بطاقة التعريف الوطنية.",
+        "cost": "2 درهم (تمبر) لكل نسخة.",
+        "time": "فوري (في الحين).",
+        "location": "أقرب ملحقة إدارية أو مقر البلدية."
     }
 }
 
@@ -27,54 +41,53 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة تاوريرت الذكية | Taourirt Smart Hub</title>
+    <title>دليل تاوريرت الإداري الشامل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0f172a; --gold: #b45309; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        :root { --primary: #0f172a; --gold: #b45309; --bg: #f1f5f9; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); margin: 0; color: var(--primary); }
         .header { background: var(--primary); color: white; padding: 50px 20px; text-align: center; border-bottom: 5px solid var(--gold); }
-        .search-container { max-width: 800px; margin: -40px auto 20px; background: white; padding: 10px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; gap: 10px; }
-        input { flex: 1; border: none; padding: 15px 25px; border-radius: 50px; outline: none; font-size: 18px; }
-        .btn { background: var(--gold); color: white; border: none; padding: 15px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; }
-        .main-content { max-width: 800px; margin: 20px auto; padding: 20px; min-height: 50vh; }
-        .result-card { background: white; padding: 25px; border-radius: 15px; border-right: 8px solid var(--gold); box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; display: none; }
-        .voice-section { text-align: center; padding: 20px; color: var(--slate); }
-        .mic-btn { font-size: 40px; cursor: pointer; color: var(--gold); filter: grayscale(1); transition: 0.3s; }
-        .mic-btn:hover { filter: grayscale(0); transform: scale(1.1); }
+        .container { max-width: 900px; margin: -40px auto 40px; padding: 0 15px; }
+        .search-card { background: white; padding: 10px; border-radius: 50px; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid var(--gold); }
+        input { flex: 1; border: none; padding: 15px 25px; border-radius: 50px; outline: none; font-size: 18px; font-family: 'Cairo'; }
+        .btn { background: var(--primary); color: white; border: none; padding: 0 40px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .result-box { margin-top: 30px; display: none; }
+        .info-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border-right: 10px solid var(--gold); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .item { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .label { font-weight: bold; color: var(--gold); display: block; margin-bottom: 5px; font-size: 14px; }
+        .value { font-size: 16px; line-height: 1.6; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1 style="margin:0;">بوابة المعرفة الذكية لمدينة تاوريرت 🇲🇦</h1>
-        <p style="opacity:0.8;">قاعدة بيانات ضخمة بالعربية والدارجة لخدمة الساكنة</p>
+        <h1>موسوعة خدمات تاوريرت 🛡️</h1>
+        <p>كل ما تحتاجه (الوثائق، الوقت، التكلفة، المكان) في مكان واحد</p>
     </div>
 
-    <div class="search-container">
-        <input type="text" id="query" placeholder="اسأل بالدارجة أو العربية (مثلاً: بغيت نبني، وراق الباسبور...)" onkeypress="if(event.key==='Enter') search()">
-        <button class="btn" onclick="search()">بحث ذكي</button>
-    </div>
+    <div class="container">
+        <div class="search-card">
+            <input type="text" id="userInput" placeholder="ابحث عن خدمة (مثلاً: لاكارط، باسبور، رخصة البناء...)" onkeypress="if(event.key==='Enter') search()">
+            <button class="btn" onclick="search()">بحث</button>
+        </div>
 
-    <div class="voice-section">
-        <div class="mic-btn" title="خاصية البحث بالدارجة المسموعة (قيد البرمجة)">🎙️</div>
-        <p><small>قريباً: تحدث بلهجتك وسيجيبك النظام</small></p>
-    </div>
-
-    <div class="main-content">
-        <div id="resultCard" class="result-card"></div>
-        <div id="welcomeMsg" style="text-align:center; color:#64748b;">
-            <h3>أهلاً بك يا ابن مدينة تاوريرت 🛡️</h3>
-            <p>ابدأ البحث عن أي مسطرة إدارية أو قانونية معقدة.</p>
+        <div id="resultBox" class="result-box">
+            <div class="info-card">
+                <h2 id="serviceTitle" style="margin-top:0; color:var(--primary);"></h2>
+                <div class="grid">
+                    <div class="item"><span class="label">📄 الوثائق المطلوبة:</span><span id="docs" class="value"></span></div>
+                    <div class="item"><span class="label">💰 التكلفة التقديرية:</span><span id="cost" class="value"></span></div>
+                    <div class="item"><span class="label">⏳ الوقت المتوقع:</span><span id="time" class="value"></span></div>
+                    <div class="item"><span class="label">📍 المكان في تاوريرت:</span><span id="loc" class="value"></span></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         async function search() {
-            const val = document.getElementById('query').value.trim();
+            const val = document.getElementById('userInput').value.trim();
             if(!val) return;
-            
-            document.getElementById('welcomeMsg').style.display = 'none';
-            const card = document.getElementById('resultCard');
-            card.style.display = 'block';
-            card.innerHTML = 'جاري تحليل البيانات الضخمة...';
 
             const res = await fetch('/ask', {
                 method: 'POST',
@@ -82,30 +95,18 @@ HTML_TEMPLATE = """
                 body: JSON.stringify({prompt: val})
             });
             const data = await res.json();
-            card.innerHTML = data.answer;
+
+            if(data.found) {
+                document.getElementById('resultBox').style.display = 'block';
+                document.getElementById('serviceTitle').innerText = data.title;
+                document.getElementById('docs').innerText = data.docs;
+                document.getElementById('cost').innerText = data.cost;
+                document.getElementById('time').innerText = data.time;
+                document.getElementById('loc').innerText = data.location;
+            } else {
+                alert("المعذرة، هذه الخدمة جاري إضافتها للقاعدة. جرب كلمات أخرى.");
+            }
         }
     </script>
 </body>
 </html>
-"""
-
-@app.route('/')
-def home():
-    return render_template_string(HTML_TEMPLATE)
-
-@app.route('/ask', methods=['POST'])
-def ask():
-    prompt = request.json.get('prompt', '').lower()
-    
-    # محرك البحث عن الكلمات المفتاحية
-    for category in TAOURIRT_BRAIN.values():
-        if any(keyword in prompt for keyword in category['keywords']):
-            return jsonify({'answer': category['answer']})
-    
-    return jsonify({
-        'answer': "💡 **لم نجد المعلومة بدقة بعد:** <br>نحن نقوم الآن بجمع المزيد من البيانات الضخمة حول هذا الموضوع لضمان إجابة دقيقة. جرب كلمات مثل (بناء، باسبور، حفظ)."
-    })
-
-if __name__ == "__main__":
-    app.run()
-    
