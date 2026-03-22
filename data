@@ -1,0 +1,7 @@
+/taourirt_project
+│── app.py                (المحرك)
+│── /data
+│   ├── identity.json     (البطاقة، الباسبور...)
+│   ├── property.json     (العقار، البناء...)
+│   ├── justice.json      (المحكمة، السجل العدلي...)
+│   └── economy.json      (التجارة، لانابيك...)
