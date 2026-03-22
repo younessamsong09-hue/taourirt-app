@@ -1,13 +1,20 @@
 from flask import Flask, request, jsonify, render_template_string
+import re
 
 app = Flask(__name__)
 
-# قاعدة بيانات الحلول الإدارية المعقدة (مركز الخبرة)
-EXPERT_SYSTEM = {
-    "التحفيظ": "🛡️ **حماية الملكية العقارية:**<br>إذا كانت الأرض غير محفظة، فالبداية من 'مطلب التحفيظ' لدى المحافظة العقارية بتاوريرت. ستحتاج لبيان مساحي (Plan) من مهندس طبوغرافي معتمد. <br>⚠️ **تنبيه:** تأكد من عدم وجود 'تعرضات' في الجريدة الرسمية.",
-    "الوكالة": "🌍 **خدمة مغاربة العالم:**<br>لإجراء معاملة في تاوريرت وأنت بالخارج، يجب إعداد 'وكالة خاصة' مصادق عليها في القنصلية. <br>📍 **نصيحة:** حدد نوع التصرف بدقة (بيع، شراء، سحب وثائق) لتجنب رفضها إدارياً.",
-    "التعمير": "🏗️ **قانون التعمير (12-90):**<br>بناء مستودع أو منزل يتطلب رخصة بناء حصراً. البناء العشوائي في ضواحي تاوريرت يعرضك لغرامات ثقيلة وهدم المنشأة. ابدأ دائماً بالمنصة الرقمية 'rokhas.ma'.",
-    "عقد الكراء": "📝 **تحصين الكراء:**<br>لا تكتفِ بتصحيح الإمضاء! يجب تسجيل عقد الكراء لدى إدارة الضرائب لضمان حقوقك في الإفراغ أو استرجاع المستحقات أمام المحكمة الابتدائية بتاوريرت."
+# قاعدة بيانات ضخمة (ستكبر مع الوقت) - تشمل العربية والدارجة
+# يمكننا لاحقاً ربطها بقاعدة بيانات SQL أو NoSQL
+MEGA_DATA = {
+    "legal": {
+        "محكمة": "المحكمة الابتدائية بتاوريرت تقع في وسط المدينة. تشمل قضاء الأسرة، الحالة المدنية، والمنازعات المدنية.",
+        "عقار": "قوانين التحفيظ العقاري (قانون 14-07) هي الضامن لملكيتك في تاوريرت. ابدأ بشهادة الملكية من المحافظة.",
+    },
+    "darija": {
+        "فين نقاد": "باش تقاد وراقك (مثل البطاقة أو الباسبور)، خاصك تمشي للمقاطعة اللي تابعة لداركم في تاوريرت أولاً.",
+        "شحال كنخلص": "الواجبات كتختلف: 75 درهم للبطاقة الوطنية، و300/500 درهم للباسبور (تمبر إلكتروني).",
+        "باغي نحفظ": "التحفيظ كيبدا عند المحافظة العقارية، خاصك تجيب معاك 'البلان' ديال لانسبيكتور (المهندس الطبوغرافي)."
+    }
 }
 
 HTML_TEMPLATE = """
@@ -16,77 +23,54 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة تاوريرت للخدمات الرقمية</title>
+    <title>Taourirt Smart Hub | المستشار الرقمي</title>
     <style>
-        :root { --legal-blue: #1e293b; --royal-gold: #d4af37; --success: #059669; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; margin: 0; color: #1e293b; }
-        .sidebar-layout { display: flex; min-height: 100vh; }
-        .main-content { flex: 1; max-width: 800px; margin: 20px auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e2e8f0; }
-        .hero-header { background: var(--legal-blue); color: white; padding: 30px; border-bottom: 5px solid var(--royal-gold); }
-        .badge { background: var(--royal-gold); color: black; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .chat-window { flex: 1; overflow-y: auto; padding: 25px; background: #ffffff; min-height: 400px; }
-        .msg { margin-bottom: 20px; padding: 15px 20px; border-radius: 12px; font-size: 15px; line-height: 1.8; max-width: 85%; }
-        .ai-response { background: #f1f5f9; border-right: 5px solid var(--royal-gold); align-self: flex-start; }
-        .user-query { background: var(--legal-blue); color: white; align-self: flex-end; border-bottom-left-radius: 2px; margin-right: auto; }
-        .input-zone { padding: 20px; background: #f8fafc; display: flex; gap: 12px; border-top: 1px solid #eee; }
-        input { flex: 1; padding: 15px; border-radius: 8px; border: 2px solid #e2e8f0; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--royal-gold); }
-        .btn-send { background: var(--legal-blue); color: white; border: none; padding: 0 30px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-send:hover { background: #0f172a; }
-        .quick-links { display: flex; flex-wrap: wrap; gap: 10px; padding: 0 25px 20px; }
-        .chip { background: #f1f5f9; padding: 8px 15px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #cbd5e1; }
-        .chip:hover { background: var(--royal-gold); color: white; border-color: var(--royal-gold); }
+        :root { --main-gold: #c5a059; --bg-dark: #0a0f18; }
+        body { font-family: 'Cairo', sans-serif; background: #f0f2f5; margin: 0; }
+        .header { background: var(--bg-dark); color: white; padding: 40px 20px; text-align: center; border-bottom: 6px solid var(--main-gold); }
+        .container { max-width: 800px; margin: -30px auto 20px; background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 80vh; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 15px 20px; border-radius: 15px; max-width: 85%; font-size: 16px; line-height: 1.8; position: relative; }
+        .bot { background: #f8f9fa; border-right: 5px solid var(--main-gold); align-self: flex-start; }
+        .user { background: var(--bg-dark); color: white; align-self: flex-end; }
+        .input-area { padding: 20px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        input { flex: 1; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; }
+        button { background: var(--main-gold); color: white; border: none; padding: 0 25px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .voice-btn { background: #e2e8f0; color: #1e293b; padding: 10px; border-radius: 50%; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="main-content">
-        <div class="hero-header">
-            <span class="badge">Official Platform</span>
-            <h1 style="margin:10px 0 5px;">منصة تاوريرت للتوجيه القانوني والإداري</h1>
-            <p style="margin:0; opacity:0.8; font-size:13px;">النظام المرجعي الأول للمواطن والمستثمر بإقليم تاوريرت</p>
+    <div class="header">
+        <h1 style="margin:0;">منظومة تاوريرت المعرفية 🇲🇦</h1>
+        <p>مستشارك الذكي باللغة العربية والدارجة</p>
+    </div>
+    <div class="container">
+        <div id="chatBox" class="chat-box">
+            <div class="msg bot">مرحباً بك في النواة الأولى لنظام الذكاء الاصطناعي لمدينة تاوريرت. يمكنك الكتابة بالعربية الفصحى أو "الدارجة".</div>
         </div>
-
-        <div id="chatBox" class="chat-window">
-            <div class="msg ai-response">
-                مرحباً بك في المركز الرقمي الموحد. <br>
-                لقد قمنا بتطوير هذا النظام لتقديم استشارات دقيقة حول <strong>المساطر العقارية، التراخيص التجارية، وخدمات مغاربة العالم</strong>. <br>
-                بماذا يمكنني خدمتك بشكل معمق اليوم؟
-            </div>
-        </div>
-
-        <div class="quick-links">
-            <div class="chip" onclick="ask('التحفيظ العقاري')">⚖️ قضايا التحفيظ</div>
-            <div class="chip" onclick="ask('رخصة التعمير')">🏗️ رخص البناء</div>
-            <div class="chip" onclick="ask('الوكالة')">🌍 خدمات الجالية</div>
-            <div class="chip" onclick="ask('عقد الكراء')">📝 توثيق العقود</div>
-        </div>
-
-        <div class="input-zone">
-            <input type="text" id="userInput" placeholder="اكتب موضوعك الإداري هنا..." onkeypress="if(event.key==='Enter') ask()">
-            <button class="btn-send" onclick="ask()">استشارة</button>
+        <div class="input-area">
+            <button class="voice-btn" title="قريباً: التحدث بالدارجة">🎤</button>
+            <input type="text" id="userInput" placeholder="اسألني أي شيء (عربية أو دارجة)..." onkeypress="if(event.key==='Enter') ask()">
+            <button onclick="ask()">بحث</button>
         </div>
     </div>
-
     <script>
-        function ask(query = null) {
+        async function ask() {
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
-            const val = query || input.value.trim();
-            if(!val) return;
-
-            chatBox.innerHTML += `<div class="msg user-query">${val}</div>`;
-            if(!query) input.value = '';
+            if(!input.value.trim()) return;
+            const text = input.value;
+            chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+            input.value = '';
             
-            fetch('/ask', {
+            const response = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: val})
-            })
-            .then(res => res.json())
-            .then(data => {
-                chatBox.innerHTML += `<div class="msg ai-response">${data.answer}</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
+                body: JSON.stringify({prompt: text})
             });
+            const data = await response.json();
+            chatBox.innerHTML += `<div class="msg bot">${data.answer}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 </body>
@@ -94,21 +78,24 @@ HTML_TEMPLATE = """
 """
 
 @app.route('/')
-def home():
+def index():
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    prompt = request.json.get('prompt', '').lower()
+    user_prompt = request.json.get('prompt', '').strip()
     
-    # محرك البحث عن الحلول
-    for key in EXPERT_SYSTEM:
-        if key in prompt:
-            return jsonify({'answer': EXPERT_SYSTEM[key]})
+    # محرك البحث الذكي (يغطي الدارجة والعربية)
+    answer = "هذه المعلومة سيتم إضافتها قريباً للقاعدة الضخمة. نحن نجمع الآن كل المعطيات القانونية لتاوريرت."
     
-    return jsonify({
-        'answer': "هذا الملف يتطلب تدقيقاً في <strong>القوانين التنظيمية المعمول بها بجماعة تاوريرت</strong>. هل تود أن أوجهك للمصلحة الخارجية المختصة (العمالة، المحكمة، أو البلدية) مع قائمة الوثائق التقنية؟"
-    })
+    # دمج البحث في كل البيانات
+    for category in MEGA_DATA.values():
+        for key, val in category.items():
+            if key in user_prompt.lower():
+                answer = val
+                break
+                
+    return jsonify({'answer': answer})
 
 if __name__ == "__main__":
     app.run()
