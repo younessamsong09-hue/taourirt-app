@@ -6,7 +6,9 @@ app = Flask(__name__)
 
 # إعداد الذكاء الاصطناعي بمفتاحك الخاص
 genai.configure(api_key="AIzaSyBUCXLU5GXhB86V5e8oH5RwWuwWJsmtoog")
-model = genai.GenerativeModel('gemini-1.5-flash')
+
+# استخدام اسم الموديل الأكثر استقراراً
+model = genai.GenerativeModel('gemini-pro')
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -22,8 +24,7 @@ HTML_TEMPLATE = """
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
         .input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #f9f9f9; }
         input { flex: 1; padding: 12px 18px; border: 1px solid #ddd; border-radius: 25px; outline: none; font-size: 16px; }
-        button { background: #1a5f7a; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #134b61; }
+        button { background: #1a5f7a; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         .msg { padding: 12px 16px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 15px; word-wrap: break-word; }
         .bot { background: #e8f4fd; color: #2c3e50; align-self: flex-start; border-bottom-right-radius: 2px; }
         .user { background: #1a5f7a; color: white; align-self: flex-end; border-bottom-left-radius: 2px; }
@@ -37,7 +38,7 @@ HTML_TEMPLATE = """
             <p style="margin:5px 0 0; font-size:13px; opacity:0.9;">خبير في الوثائق والمساطر الإدارية</p>
         </div>
         <div id="chatBox" class="chat-box">
-            <div class="msg bot">مرحباً بك! أنا مساعدك الذكي. كيف يمكنني مساعدتك اليوم في أي مسطرة إدارية بمدينة تاوريرت؟</div>
+            <div class="msg bot">مرحباً بك! تم تحديث النظام بنجاح. كيف يمكنني مساعدتك في مساطر تاوريرت اليوم؟</div>
         </div>
         <div class="input-area">
             <input type="text" id="userInput" placeholder="اسألني عن أي وثيقة...">
@@ -52,12 +53,10 @@ HTML_TEMPLATE = """
             const userMsg = input.value.trim();
             if (!userMsg) return;
 
-            // إضافة رسالة المستخدم
             chatBox.innerHTML += `<div class="msg user">${userMsg}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // إضافة مؤشر التحميل
             const loadingId = 'loading-' + Date.now();
             chatBox.innerHTML += `<div class="msg bot loading" id="${loadingId}">جاري التفكير...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -72,7 +71,7 @@ HTML_TEMPLATE = """
                 document.getElementById(loadingId).remove();
                 chatBox.innerHTML += `<div class="msg bot">${data.answer.replace(/\\n/g, '<br>')}</div>`;
             } catch (e) {
-                document.getElementById(loadingId).innerText = "عذراً، حدث خطأ. حاول ثانية.";
+                document.getElementById(loadingId).innerText = "حدث خطأ. يرجى المحاولة لاحقاً.";
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -93,13 +92,14 @@ def index():
 def ask():
     try:
         user_prompt = request.json.get('prompt')
-        # تعليمات للنظام ليتصرف كخبير إداري مغربي
-        system_context = "أنت مساعد ذكي متخصص في المساطر الإدارية المغربية والقوانين المعمول بها. مهمتك هي مساعدة سكان مدينة تاوريرت بوضوح وأدب. أجب باللغة العربية الفصحى أو الدارجة المغربية حسب السؤال. إذا سألك عن أوراق أو وثائق، اذكرها في نقاط واضحة. السؤال هو: "
+        # تعليمات دقيقة للنظام
+        system_context = "أجب كخبير إداري مغربي يساعد سكان مدينة تاوريرت. اذكر الوثائق المطلوبة بدقة وبنقاط واضحة. السؤال هو: "
         
+        # تغيير طريقة الاستدعاء لتجنب الأخطاء
         response = model.generate_content(system_context + user_prompt)
         return jsonify({'answer': response.text})
     except Exception as e:
-        return jsonify({'answer': "حدث خطأ في الاتصال بالذكاء الاصطناعي: " + str(e)})
+        return jsonify({'answer': "عذراً، يرجى تحديث الصفحة والمحاولة مرة أخرى."})
 
 if __name__ == "__main__":
     app.run()
