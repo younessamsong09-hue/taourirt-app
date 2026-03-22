@@ -2,18 +2,22 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-# قاعدة بيانات "الذكاء المحلي" - قابلة للتوسع لآلاف الأسطر
-KNOWLEDGE_BASE = {
-    # قسم الدارجة (للمواطن البسيط)
-    "دارجة": {
-        "بغيت نحفظ": "التحفيظ العقاري في تاوريرت كيبدا بتقديم طلب في 'المحافظة العقارية' (قرب العمالة). خاصك 'البلان' وشهادة الملكية أو عقد عدلي.",
-        "وراق الموت": "الله يرحم الجميع. الوراثة كتبدا عند 'العدول' باش تقادو 'إراثة'. خاصكم كناش التعريف، شهادة الوفاة، وتحديد الورثة.",
-        "رخصة الحانوت": "باش تفتح محل تجاري في تاوريرت، خاصك تمشي للمصلحة الاقتصادية في البلدية. كاين فرق بين 'التصريح' و'الترخيص' على حسب النشاط."
+# قاعدة البيانات الكبرى (النواة) - هنا سنجمع مئات النصوص بالدارجة والعربية
+TAOURIRT_BRAIN = {
+    # قسم العقار والتعمير (الأكثر طلباً)
+    "عقار": {
+        "keywords": ["حفظ", "محفظة", "تحفيظ", "بلان", "أرض", "بني", "رخصة"],
+        "answer": "⚖️ **منظومة العقار والتعمير:**<br>في تاوريرت، أي عملية بناء أو تحفيظ تبدأ من **الوكالة الحضرية**. <br>🔹 **بالدارجة:** إذا بغيتي تبني، ضروري 'البلان' من عند مهندس و 'الرخصة' من الجماعة. البناء بلا رخصة كايعرضك للهدم والخطية."
     },
-    # قسم اللغة العربية (للمساطر الرسمية)
-    "رسمي": {
-        "الاستثمار العقاري": "إقليم تاوريرت يخضع لمخطط التهيئة العمرانية الجديد. أي استثمار يتطلب موافقة 'الوكالة الحضرية لوجدة - ملحقة تاوريرت'.",
-        "الشكايات": "يمكن وضع شكاية رسمية لدى السيد وكيل الملك بمحكمة تاوريرت، أو عبر البوابة الوطنية للشكايات 'chikaya.ma'."
+    # قسم الوثائق الشخصية
+    "هوية": {
+        "keywords": ["بطاقة", "لاكارط", "باسبور", "جواز", "عقد", "إزدياد"],
+        "answer": "🆔 **الوثائق التعريفية:**<br>🔹 **البطاقة الوطنية:** التوجه لمفوضية الشرطة (قرب المحطة). <br>🔹 **الجواز:** الطلب عبر passport.ma والإيداع في المقاطعة التابع لها حيك في تاوريرت."
+    },
+    # قسم مغاربة العالم (مهم جداً للمدينة)
+    "جالية": {
+        "keywords": ["برا", "الغربة", "وكالة", "قنصلية", "جالية", "إقامة"],
+        "answer": "🌍 **خدمات مغاربة العالم:**<br>لإجراء أي غرض إداري من الخارج، يجب إرسال **'وكالة خاصة'** مصادق عليها. <br>🔹 **نصيحة:** يمكنكم طلب 'عقد الازدياد' و 'السجل العدلي' إلكترونياً عبر البوابات الرسمية دون عناء السفر."
     }
 }
 
@@ -23,56 +27,62 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taourirt Knowledge Hub</title>
+    <title>منصة تاوريرت الذكية | Taourirt Smart Hub</title>
     <style>
-        :root { --taourirt-blue: #023e8a; --taourirt-gold: #ffb703; }
-        body { font-family: 'Cairo', sans-serif; background: #e9ecef; margin: 0; }
-        .top-bar { background: var(--taourirt-blue); color: white; padding: 40px 20px; text-align: center; clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); }
-        .main-container { max-width: 900px; margin: -50px auto 30px; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); height: 80vh; display: flex; flex-direction: column; }
-        .chat-display { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
-        .bubble { padding: 18px 25px; border-radius: 25px; font-size: 17px; line-height: 1.8; max-width: 80%; }
-        .ai { background: #f1f3f5; border-right: 6px solid var(--taourirt-gold); align-self: flex-start; color: #333; }
-        .user { background: var(--taourirt-blue); color: white; align-self: flex-end; border-bottom-left-radius: 0; }
-        .input-group { padding: 25px; background: white; border-top: 1px solid #eee; display: flex; gap: 15px; align-items: center; }
-        input { flex: 1; padding: 15px 25px; border: 2px solid #dee2e6; border-radius: 50px; outline: none; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--taourirt-blue); }
-        .btn { background: var(--taourirt-blue); color: white; border: none; padding: 15px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; }
-        .mic-icon { font-size: 24px; cursor: pointer; color: var(--taourirt-blue); opacity: 0.6; transition: 0.3s; }
-        .mic-icon:hover { opacity: 1; transform: scale(1.1); }
+        :root { --primary: #0f172a; --gold: #b45309; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        .header { background: var(--primary); color: white; padding: 50px 20px; text-align: center; border-bottom: 5px solid var(--gold); }
+        .search-container { max-width: 800px; margin: -40px auto 20px; background: white; padding: 10px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; gap: 10px; }
+        input { flex: 1; border: none; padding: 15px 25px; border-radius: 50px; outline: none; font-size: 18px; }
+        .btn { background: var(--gold); color: white; border: none; padding: 15px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .main-content { max-width: 800px; margin: 20px auto; padding: 20px; min-height: 50vh; }
+        .result-card { background: white; padding: 25px; border-radius: 15px; border-right: 8px solid var(--gold); box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; display: none; }
+        .voice-section { text-align: center; padding: 20px; color: var(--slate); }
+        .mic-btn { font-size: 40px; cursor: pointer; color: var(--gold); filter: grayscale(1); transition: 0.3s; }
+        .mic-btn:hover { filter: grayscale(0); transform: scale(1.1); }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <h1 style="margin:0; font-size:2.5rem;">نظام المعرفة الشامل - تاوريرت 🛡️</h1>
-        <p>الذكاء الاصطناعي في خدمة الإدارة والمواطن</p>
+    <div class="header">
+        <h1 style="margin:0;">بوابة المعرفة الذكية لمدينة تاوريرت 🇲🇦</h1>
+        <p style="opacity:0.8;">قاعدة بيانات ضخمة بالعربية والدارجة لخدمة الساكنة</p>
     </div>
-    <div class="main-container">
-        <div id="display" class="chat-display">
-            <div class="bubble ai">مرحباً يوسف. أنا الآن أعمل بمحرك البحث الهجين. اسألني بالدارجة أو العربية عن أي ملف إداري أو قانوني يخص المدينة.</div>
-        </div>
-        <div class="input-group">
-            <span class="mic-icon" onclick="alert('جاري العمل على تفعيل استقبال الصوت بالدارجة...')">🎙️</span>
-            <input type="text" id="userInput" placeholder="اسأل (مثلاً: بغيت نحفظ، رخصة البناء، إراثة...)" onkeypress="if(event.key==='Enter') process()">
-            <button class="btn" onclick="process()">استشارة</button>
+
+    <div class="search-container">
+        <input type="text" id="query" placeholder="اسأل بالدارجة أو العربية (مثلاً: بغيت نبني، وراق الباسبور...)" onkeypress="if(event.key==='Enter') search()">
+        <button class="btn" onclick="search()">بحث ذكي</button>
+    </div>
+
+    <div class="voice-section">
+        <div class="mic-btn" title="خاصية البحث بالدارجة المسموعة (قيد البرمجة)">🎙️</div>
+        <p><small>قريباً: تحدث بلهجتك وسيجيبك النظام</small></p>
+    </div>
+
+    <div class="main-content">
+        <div id="resultCard" class="result-card"></div>
+        <div id="welcomeMsg" style="text-align:center; color:#64748b;">
+            <h3>أهلاً بك يا ابن مدينة تاوريرت 🛡️</h3>
+            <p>ابدأ البحث عن أي مسطرة إدارية أو قانونية معقدة.</p>
         </div>
     </div>
+
     <script>
-        async function process() {
-            const input = document.getElementById('userInput');
-            const display = document.getElementById('display');
-            if(!input.value.trim()) return;
-            const val = input.value;
-            display.innerHTML += `<div class="bubble user">${val}</div>`;
-            input.value = '';
+        async function search() {
+            const val = document.getElementById('query').value.trim();
+            if(!val) return;
             
+            document.getElementById('welcomeMsg').style.display = 'none';
+            const card = document.getElementById('resultCard');
+            card.style.display = 'block';
+            card.innerHTML = 'جاري تحليل البيانات الضخمة...';
+
             const res = await fetch('/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({prompt: val})
             });
             const data = await res.json();
-            display.innerHTML += `<div class="bubble ai">${data.answer}</div>`;
-            display.scrollTop = display.scrollHeight;
+            card.innerHTML = data.answer;
         }
     </script>
 </body>
@@ -80,20 +90,21 @@ HTML_TEMPLATE = """
 """
 
 @app.route('/')
-def index():
+def home():
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    p = request.json.get('prompt', '')
+    prompt = request.json.get('prompt', '').lower()
     
-    # البحث المتقدم في الدارجة والفصحى
-    for cat in KNOWLEDGE_BASE:
-        for k, v in KNOWLEDGE_BASE[cat].items():
-            if k in p:
-                return jsonify({'answer': v})
+    # محرك البحث عن الكلمات المفتاحية
+    for category in TAOURIRT_BRAIN.values():
+        if any(keyword in prompt for keyword in category['keywords']):
+            return jsonify({'answer': category['answer']})
     
-    return jsonify({'answer': "بصفتي مساعدك الذكي في تاوريرت، هذا الموضوع يتطلب جمع بيانات أدق. سأقوم بإضافته لقاعدتي المعرفية فوراً. هل تقصد شيئاً يتعلق بالعقار أو الرخص التجارية؟"})
+    return jsonify({
+        'answer': "💡 **لم نجد المعلومة بدقة بعد:** <br>نحن نقوم الآن بجمع المزيد من البيانات الضخمة حول هذا الموضوع لضمان إجابة دقيقة. جرب كلمات مثل (بناء، باسبور، حفظ)."
+    })
 
 if __name__ == "__main__":
     app.run()
