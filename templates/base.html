@@ -1,82 +1,37 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنصة الوطنية للحلول | تاوريرت هب</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --main-green: #1a5e32;
-            --light-green: #e8f5e9;
-            --gold: #c5a059;
-            --text-dark: #2d3436;
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
+<style>
+    :root {
+        --main-green: #1a5e32;
+        --accent-gold: #d4af37;
+        --soft-bg: #f8fafc;
+        --glass: rgba(255, 255, 255, 0.9);
+    }
 
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f8fafc;
-            color: var(--text-dark);
-            margin: 0;
-            line-height: 1.6;
-        }
+    body {
+        font-family: 'Tajawal', sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+        margin: 0;
+    }
 
-        .navbar {
-            background: white;
-            padding: 15px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            border-bottom: 3px solid var(--main-green);
-        }
+    .navbar {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(26, 94, 50, 0.1);
+        padding: 20px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
+    .navbar h2 {
+        font-size: 22px;
+        background: linear-gradient(to left, var(--main-green), #2d3436);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
 
-        /* تحسين شكل بطاقات النتائج */
-        .result-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 25px;
-            border: 1px solid #edf2f7;
-            box-shadow: var(--shadow);
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            text-decoration: none;
-            flex: 1;
-        }
-
-        .btn-print { background: #edf2f7; color: #4a5568; }
-        .btn-whatsapp { background: #25D366; color: white; }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2 style="margin:0; color:var(--main-green);">🇲🇦 المنصة الوطنية</h2>
-    </div>
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
-</body>
-</html>
