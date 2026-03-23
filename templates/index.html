@@ -29,11 +29,11 @@
         {% include "includes/search_bar.html" %}
     </section>
 
-    <section class="stats-bar-national" style="margin-bottom: 20px;">
+    <section style="margin-bottom: 20px;">
         {% include "includes/stats_bar.html" ignore missing %}
     </section>
 
-    <section class="did-you-know-section" style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
+    <section style="max-width:900px; margin:0 auto 40px; padding:0 20px;">
         <div style="background: linear-gradient(135deg, #fff9f0 0%, #fff 100%); border: 1px solid #fee2e2; border-radius: 25px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); animation: slideUp 0.8s ease;">
             <div style="font-size: 30px; background: white; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 5px 10px rgba(0,0,0,0.05); flex-shrink: 0;">💡</div>
             <div style="flex: 1;">
@@ -41,6 +41,30 @@
                 <p id="dynamic-info" style="margin: 5px 0 0; color: #475569; font-size: 13.5px; line-height: 1.6; transition: opacity 0.5s ease;">
                     هل تعلم أن السجل العدلي يمكن طلبه عبر الإنترنت واستلامه في بريدك الإلكتروني دون الحاجة للتنقل؟
                 </p>
+            </div>
+        </div>
+    </section>
+
+    <section style="max-width: 1100px; margin: 50px auto; padding: 0 20px;">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <div style="width: 5px; height: 25px; background: #c5a059; border-radius: 10px;"></div>
+            <h3 style="font-size: 18px; color: #334155; margin: 0; font-weight: 800;">المكتبة القانونية المغربية</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px;">
+            <div class="book-card" onclick="openBook('family')" style="background: white; border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px rgba(0,0,0,0.02); cursor: pointer; transition: 0.3s;">
+                <div style="font-size: 40px; margin-bottom: 10px;">📕</div>
+                <h4 style="font-size: 14px; color: #1e293b; margin: 0; font-weight: bold;">مدونة الأسرة</h4>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">تحديثات 2026</p>
+            </div>
+            <div class="book-card" onclick="openBook('criminal')" style="background: white; border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px rgba(0,0,0,0.02); cursor: pointer; transition: 0.3s;">
+                <div style="font-size: 40px; margin-bottom: 10px;">⚖️</div>
+                <h4 style="font-size: 14px; color: #1e293b; margin: 0; font-weight: bold;">القانون الجنائي</h4>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">النصوص الكاملة</p>
+            </div>
+            <div class="book-card" onclick="openBook('constitution')" style="background: white; border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px rgba(0,0,0,0.02); cursor: pointer; transition: 0.3s;">
+                <div style="font-size: 40px; margin-bottom: 10px;">📜</div>
+                <h4 style="font-size: 14px; color: #1e293b; margin: 0; font-weight: bold;">الدستور المغربي</h4>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">نسخة 2011 المحدثة</p>
             </div>
         </div>
     </section>
@@ -63,6 +87,7 @@
 </div>
 
 <script>
+    // وظيفة البحث الرئيسية
     async function runSearch() {
         const queryInput = document.getElementById('user-query');
         const query = queryInput.value.trim();
@@ -71,12 +96,7 @@
         if(!query) return;
 
         display.style.display = 'block';
-        display.innerHTML = `
-            <div style="text-align:center; padding:60px; background:white; border-radius:35px; box-shadow:0 15px 35px rgba(0,0,0,0.05);">
-                <div class="loader-royal"></div>
-                <p style="margin-top:20px; color:#64748b; font-weight:700;">جاري مطابقة البحث مع النصوص القانونية الرسمية...</p>
-            </div>
-        `;
+        display.innerHTML = `<div style="text-align:center; padding:60px;"><div class="loader-royal"></div></div>`;
 
         try {
             const response = await fetch('/ask', {
@@ -88,40 +108,57 @@
 
             if(data.found) {
                 const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `
-                    <div class="doc-card-premium">
-                        <div class="check-box">✓</div>
-                        <p>${doc.trim()}</p>
-                    </div>
+                    <div class="doc-card-premium"><div class="check-box">✓</div><p>${doc.trim()}</p></div>
                 `).join('');
                 
                 display.innerHTML = `
-                    <div class="royal-card-final" style="animation: slideUp 0.6s ease-out;">
-                        <div class="card-header-national">
-                            <span class="flag">🇲🇦</span>
-                            <h2>${data.title}</h2>
-                        </div>
+                    <div class="royal-card-final">
+                        <div class="card-header-national"><span class="flag">🇲🇦</span><h2>${data.title}</h2></div>
                         <div class="docs-grid">${docsList}</div>
                         <div class="card-footer-info">
-                            <div class="info-row"><span>📍</span> <b>جهة الإيداع:</b> ${data.location}</div>
-                            ${data.cost ? `<div class="info-row"><span>💰</span> <b>الواجبات:</b> ${data.cost}</div>` : ''}
+                            <div class="info-row">📍 <b>جهة الإيداع:</b> ${data.location}</div>
+                            ${data.cost ? `<div class="info-row">💰 <b>الواجبات:</b> ${data.cost}</div>` : ''}
                         </div>
                         <button onclick="window.print()" class="btn-national-action">حفظ الملف بصيغة PDF</button>
                     </div>
                 `;
             } else {
-                display.innerHTML = `<div class="not-found">🧐 نعتذر، لم يتم العثور على المسطرة المطلوبة. حاول البحث بكلمة مفتاحية مثل "جواز" أو "بطاقة".</div>`;
+                display.innerHTML = `<div class="not-found">🧐 نعتذر، لم يتم العثور على المسطرة المطلوبة.</div>`;
             }
         } catch (e) {
-            display.innerHTML = "<div class='error'>عذراً، تعذر الاتصال بالسيرفر الوطني.</div>";
+            display.innerHTML = "<div class='error'>عذراً، تعذر الاتصال بالسيرفر.</div>";
         }
     }
 
-    // مصفوفة المعلومات المتغيرة
+    // وظيفة فتح الكتب القانونية
+    function openBook(type) {
+        const display = document.getElementById('results-display');
+        display.style.display = 'block';
+        window.scrollTo({ top: display.offsetTop - 100, behavior: 'smooth' });
+
+        const titles = { 'family': 'مدونة الأسرة', 'criminal': 'القانون الجنائي', 'constitution': 'الدستور المغربي' };
+        
+        display.innerHTML = `
+            <div class="royal-card-final" style="border-right: 6px solid #c5a059;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: #1a5e32; margin: 0;">📖 تصفح: ${titles[type]}</h2>
+                    <button onclick="document.getElementById('results-display').style.display='none'" style="background:none; border:none; font-size:24px; cursor:pointer;">✕</button>
+                </div>
+                <div style="background:#fdfdfd; padding:25px; border-radius:20px; max-height:500px; overflow-y:auto; line-height:1.8; text-align:justify;">
+                    <p><b>الباب الأول: أحكام عامة</b><br>المادة 1: تخضع مقتضيات هذا القانون لجميع المواطنين المغاربة...</p>
+                    <p><i>(سيتم تفعيل النصوص الكاملة قريباً في تحديث قاعدة البيانات)</i></p>
+                </div>
+                <button class="btn-national-action">تحميل الكتاب كاملاً PDF</button>
+            </div>
+        `;
+    }
+
+    // نظام المعلومات المتغيرة (هل تعلم)
     const nationalFacts = [
-        "البطاقة الوطنية الإلكترونية الجديدة تُغنيك عن تقديم شهادة الميلاد أو السكنى في معظم الإدارات العمومية.",
-        "يمكنك الآن طلب 'التنبر الإلكتروني' لجواز السفر عبر الإنترنت والدفع بواسطة البطاقة البنكية أو لدى وكالات القرب.",
-        "صلاحية شهادة السكنى المسلمة من طرف مصالح الأمن الوطني أو الدرك الملكي هي 3 أشهر فقط.",
-        "تطبيق 'هويتي الرقمية' يتيح لك الولوج لخدمات الضمان الاجتماعي (CNSS) وموقع 'إدارتي' بشكل آمن وسريع."
+        "البطاقة الوطنية الإلكترونية الجديدة تُغنيك عن تقديم شهادة الميلاد في معظم الإدارات.",
+        "يمكنك طلب 'التنبر الإلكتروني' لجواز السفر عبر الإنترنت والدفع بواسطة البطاقة البنكية.",
+        "صلاحية شهادة السكنى المسلمة من الأمن الوطني هي 3 أشهر فقط.",
+        "تطبيق 'هويتي الرقمية' يتيح لك الولوج لخدمات الضمان الاجتماعي CNSS بشكل آمن."
     ];
 
     let factIndex = 0;
@@ -136,7 +173,7 @@
             }, 500);
         }
     }, 9000);
-    
+
     function fastAction(val) {
         document.getElementById('user-query').value = val;
         runSearch();
@@ -147,21 +184,12 @@
     @keyframes tickerMove { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     .loader-royal { width: 45px; height: 45px; border: 4px solid #f1f5f9; border-top: 4px solid #1a5e32; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    .royal-card-final { background: white; border-radius: 40px; padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; position: relative; }
+    .royal-card-final { background: white; border-radius: 40px; padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; animation: slideUp 0.6s ease-out; }
     .card-header-national { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 25px; margin-bottom: 30px; }
-    .card-header-national h2 { font-size: 24px; color: #1a5e32; margin: 0; font-weight: 900; }
-    
-    .doc-card-premium { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 18px; border-radius: 20px; margin-bottom: 12px; transition: 0.3s; }
-    .doc-card-premium:hover { background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.04); transform: translateY(-3px); }
-    .check-box { background: #1a5e32; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-    
-    .card-footer-info { background: #fff9f0; padding: 25px; border-radius: 25px; border: 1px solid #fee2e2; margin-top: 30px; }
-    .info-row { font-size: 15px; color: #334155; margin-bottom: 8px; }
-
-    .btn-national-action { width: 100%; margin-top: 30px; padding: 20px; border-radius: 20px; border: none; background: #1a5e32; color: white; font-weight: 900; font-size: 17px; cursor: pointer; transition: 0.3s; box-shadow: 0 15px 30px rgba(26, 94, 50, 0.2); }
-    
+    .doc-card-premium { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 18px; border-radius: 20px; margin-bottom: 12px; }
+    .check-box { background: #1a5e32; color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .btn-national-action { width: 100%; margin-top: 30px; padding: 20px; border-radius: 20px; border: none; background: #1a5e32; color: white; font-weight: 900; cursor: pointer; }
+    .book-card:hover { transform: translateY(-10px); border-color: #c5a059 !important; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .not-found { text-align: center; padding: 40px; background: white; border-radius: 30px; color: #64748b; font-weight: bold; }
 </style>
 {% endblock %}
