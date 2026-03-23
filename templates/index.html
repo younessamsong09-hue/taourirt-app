@@ -19,52 +19,34 @@
             if(!query) return;
 
             display.style.display = 'block';
-            display.innerHTML = '<p style="text-align:center">جاري فحص 25 قاعدة بيانات... ⏳</p>';
+            display.innerHTML = '<p style="text-align:center">جاري البحث... ⏳</p>';
 
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: query})
-            });
-            const data = await response.json();
-
-            if(data.found) {
-                // تنسيق الوثائق لتظهر بشكل قائمة مرتبة كما في الصور
-                const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `<li style="margin-bottom:8px;">✅ ${doc.trim()}</li>`).join('');
-
-                display.innerHTML = `
-                    <h3 style="color:var(--main); border-bottom:1px solid #eee; padding-bottom:10px;">${data.title}</h3>
-                    <div style="margin-top:15px;">
-                        <p><b>📄 الوثائق المطلوبة:</b></p>
-                        <ul style="list-style:none; padding:0;">${docsList}</ul>
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: query})
+                });
+                const data = await response.json();
+                
+                if(data.found) {
+                    display.innerHTML = `
+                        <h3 style="color:var(--main);">${data.title}</h3>
+                        <p><b>📄 الوثائق:</b> ${data.docs}</p>
                         <p><b>💰 التكلفة:</b> ${data.cost}</p>
                         <p><b>📍 المكان:</b> ${data.location}</p>
-                    </div>
-                    <div style="margin-top:20px; display:flex; gap:10px;">
-                        <button onclick="window.print()" style="flex:1; padding:10px; border-radius:12px; border:1px solid #ddd; background:#fff; cursor:pointer;">📥 طباعة الدليل</button>
-                        <a href="https://wa.me/?text=${encodeURIComponent('دليل ' + data.title + ': ' + data.location)}" target="_blank" style="flex:1; padding:10px; border-radius:12px; background:#25D366; color:white; text-align:center; text-decoration:none; font-weight:bold;">💬 مشاركة</a>
-                    </div>
-                `;
-            } else {
-                display.innerHTML = '<p style="color:red; text-align:center;">لم نجد حلاً مطابقاً. جرب كلمات أخرى.</p>';
+                    `;
+                } else {
+                    display.innerHTML = '<p style="color:red; text-align:center;">لم نجد حلاً. جرب كلمات أخرى.</p>';
+                }
+            } catch (e) {
+                console.log("Error:", e);
             }
         }
-
+        
         function fastAction(text) {
             document.getElementById('user-query').value = text;
             runSearch();
-        }
-
-        function startVoiceSearch() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Speech) return alert("المتصفح لا يدعم الصوت");
-            const recognition = new Speech();
-            recognition.lang = 'ar-MA';
-            recognition.onresult = (e) => {
-                document.getElementById('user-query').value = e.results[0][0].transcript;
-                runSearch();
-            };
-            recognition.start();
         }
     </script>
 {% endblock %}
