@@ -1,51 +1,56 @@
-<div class="search-wrapper" style="position: relative; margin: 30px 0;">
-    <div style="background: white; padding: 10px 15px; border-radius: 50px; box-shadow: var(--shadow); display: flex; align-items: center; border: 2px solid var(--main-green);">
+<div class="search-wrapper" style="position: relative; margin: 20px 0;">
+    <div style="background: white; padding: 8px 12px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; align-items: center; border: 2px solid var(--main-green, #1a5e32);">
         
-        <button onclick="startVoice()" id="voice-btn" style="background: #f8fafc; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; transition: 0.3s;">
+        <button onclick="startVoice()" id="voice-btn" style="background: #f8fafc; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 18px; transition: 0.3s; display: flex; align-items: center; justify-content: center;">
             🎤
         </button>
 
-        <input type="text" id="user-query" placeholder="تحدث أو اكتب مشكلتك..." 
-               style="flex: 1; border: none; outline: none; font-family: 'Tajawal'; font-size: 16px; padding: 0 15px; background: transparent;">
+        <input type="text" id="user-query" placeholder="تحدث أو اكتب ما تبحث عنه..." 
+               style="flex: 1; border: none; outline: none; font-family: 'Tajawal', sans-serif; font-size: 16px; padding: 0 15px; background: transparent; text-align: right;">
         
-        <button onclick="runSearch()" style="background: var(--main-green); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; transition: 0.3s;">
+        <button onclick="runSearch()" style="background: var(--main-green, #1a5e32); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; transition: 0.3s;">
             🔍
         </button>
     </div>
-    <div id="voice-status" style="text-align: center; font-size: 12px; color: var(--main-green); margin-top: 5px; font-weight: bold; display: none;">
-        🔴 جاري الاستماع.. تحدث الآن
+    <div id="voice-status" style="text-align: center; font-size: 12px; color: #ef4444; margin-top: 8px; font-weight: bold; display: none; animation: blink 1s infinite;">
+        🔴 جاري الاستماع.. تحدث الآن (بالدارجة أو العربية)
     </div>
 </div>
 
+<style>
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    #voice-btn.active { background: #ef4444 !important; color: white !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+</style>
+
 <script>
     function startVoice() {
-        if (!('webkitSpeechRecognition' in window)) {
-            alert("عذراً، متصفحك لا يدعم البحث الصوتي. جرب متصفح Chrome.");
+        const recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!recognition) {
+            alert("متصفحك لا يدعم البحث الصوتي. جرب Chrome.");
             return;
         }
 
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ar-MA'; // دعم الدارجة واللغة العربية
+        const rec = new recognition();
+        rec.lang = 'ar-MA'; 
         const voiceBtn = document.getElementById('voice-btn');
         const status = document.getElementById('voice-status');
 
-        recognition.onstart = () => {
-            voiceBtn.style.background = '#ff4757';
-            voiceBtn.style.color = 'white';
+        rec.onstart = () => {
+            voiceBtn.classList.add('active');
             status.style.display = 'block';
         };
 
-        recognition.onresult = (event) => {
+        rec.onresult = (event) => {
             const text = event.results[0][0].transcript;
             document.getElementById('user-query').value = text;
-            runSearch(); // ابحث تلقائياً بعد سماع الصوت
+            if(typeof runSearch === "function") runSearch(); 
         };
 
-        recognition.onend = () => {
-            voiceBtn.style.background = '#f8fafc';
+        rec.onend = () => {
+            voiceBtn.classList.remove('active');
             status.style.display = 'none';
         };
 
-        recognition.start();
+        rec.start();
     }
 </script>
