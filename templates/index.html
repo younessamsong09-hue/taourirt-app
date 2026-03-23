@@ -3,173 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنصة الوطنية للحلول</title>
+    <title>المنصة الوطنية</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --main: #1a6d36; --accent: #c1272d; --bg: #f4f7f6; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .app-container { max-width: 500px; margin: auto; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        
-        .header { text-align: center; margin-bottom: 15px; }
-        .header img { width: 55px; margin-bottom: 10px; border-radius: 5px; }
-        .header h1 { color: var(--main); margin: 0; font-size: 24px; }
-
-        /* 🟢 الشريط الإخباري (هنا يكمن الفرق) */
-        .news-ticker {
-            background: #fff; border: 2px solid var(--main); border-radius: 15px;
-            margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; height: 40px;
-        }
-        .ticker-label { background: var(--main); color: white; padding: 0 15px; font-weight: bold; height: 100%; display: flex; align-items: center; z-index: 2; font-size: 14px; }
-        .ticker-content { flex: 1; overflow: hidden; white-space: nowrap; }
-        .ticker-scroll { display: inline-block; animation: scroll 20s linear infinite; padding-right: 100%; color: #333; font-size: 13px; }
-        @keyframes scroll { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-        /* 🎤 صندوق البحث مع الميكروفون */
-        .search-area { position: relative; margin-bottom: 25px; display: flex; gap: 10px; }
-        .input-group { position: relative; flex: 1; }
-        .input-group input { width: 100%; padding: 18px 45px 18px 15px; border: 2px solid #eee; border-radius: 20px; font-size: 16px; outline: none; box-sizing: border-box; }
-        .mic-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 22px; cursor: pointer; }
-        .mic-btn.active { color: var(--accent); animation: blink 1s infinite; }
-        .search-go { background: var(--main); color: white; border: none; padding: 0 25px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-
-        /* منطقة النتائج */
-        #result-box { display: none; background: #fff; border: 2px solid #eef2f0; border-radius: 25px; padding: 20px; margin-top: 20px; }
-        .res-title { color: var(--main); font-size: 20px; font-weight: bold; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; display: block; }
-        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn { padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; font-size: 14px; }
-        .btn-pdf { background: #f0f0f0; color: #333; }
-        .btn-wa { background: #25D366; color: white; }
-
-        /* 🧮 الحاسبة */
-        .calc-tool { background: #fff9f9; border: 1.5px dashed var(--accent); border-radius: 20px; padding: 15px; margin: 20px 0; }
-        .calc-tool input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; }
-
-        /* الحلول السريعة (مثل صورك) */
-        .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .q-item { background: white; border: 1px solid #eee; padding: 20px; border-radius: 25px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .q-item:hover { border-color: var(--main); transform: translateY(-5px); }
-        .q-item img { width: 40px; margin-bottom: 10px; }
-
-        @keyframes blink { 50% { opacity: 0.5; } }
+        .app-container { max-width: 500px; margin: auto; background: white; border-radius: 30px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-
-<div class="app-container">
-    <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" alt="المغرب">
-        <h1>المنصة الوطنية</h1>
-        <p style="color: #666; font-size: 13px;">دليلك الذكي للمساطر الإدارية بالمغرب</p>
+    <div class="app-container">
+        {% block content %}{% endblock %}
     </div>
-
-    <div class="news-ticker">
-        <div class="ticker-label">عاجل 🔥</div>
-        <div class="ticker-content">
-            <div class="ticker-scroll">
-                <span>• انطلاق التسجيل في دعم السكن 2026</span>
-                <span>• ميزة البحث بالدارجة مفعلة الآن</span>
-                <span>• تحديث وثائق جواز السفر (مبر 500 درهم)</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="search-area">
-        <div class="input-group">
-            <input type="text" id="query-input" placeholder="اكتب مشكلتك هنا..." onkeypress="if(event.key==='Enter') executeSearch()">
-            <button class="mic-btn" id="mic-icon" onclick="startVoice()">🎤</button>
-        </div>
-        <button class="search-go" onclick="executeSearch()">بحث</button>
-    </div>
-
-    <div id="result-box">
-        <div id="printable-area">
-            <span class="res-title" id="res-t"></span>
-            <div id="res-b"></div>
-        </div>
-        <div class="action-btns">
-            <button class="btn btn-pdf" onclick="saveAsPDF()">📥 تحميل PDF</button>
-            <a id="wa-share-link" href="#" target="_blank" class="btn btn-wa">📲 واتساب</a>
-        </div>
-    </div>
-
-    <div class="calc-tool">
-        <p style="font-weight: bold; color: var(--accent); margin: 0;">🧮 حاسبة التكاليف السريعة:</p>
-        <input type="number" id="people" placeholder="عدد الأشخاص للجواز" oninput="doCalc()">
-        <p id="total-price" style="font-weight: bold; color: var(--main); margin-top: 10px;"></p>
-    </div>
-
-    <p style="font-weight: bold; margin-bottom: 15px;">✨ حلول سريعة تهمك:</p>
-    <div class="quick-grid">
-        <div class="q-item" onclick="fastFill('دعم السكن')">🏠<br>دعم السكن</div>
-        <div class="q-item" onclick="fastFill('تعويض الحفر')">🕳️<br>تعويض الحفر</div>
-        <div class="q-item" onclick="fastFill('جواز السفر')">🛂<br>جواز السفر</div>
-        <div class="q-item" onclick="fastFill('تبليغ رشوة')">🚫<br>تبليغ رشوة</div>
-    </div>
-</div>
-
-<script>
-    // وظيفة البحث الصوتي
-    function startVoice() {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if(!Speech) return alert("المتصفح لا يدعم الصوت");
-        const rec = new Speech();
-        rec.lang = 'ar-MA';
-        rec.onstart = () => document.getElementById('mic-icon').classList.add('active');
-        rec.onresult = (e) => {
-            document.getElementById('query-input').value = e.results[0][0].transcript;
-            executeSearch();
-        };
-        rec.onend = () => document.getElementById('mic-icon').classList.remove('active');
-        rec.start();
-    }
-
-    // وظيفة البحث الأساسية
-    async function executeSearch() {
-        const q = document.getElementById('query-input').value;
-        const box = document.getElementById('result-box');
-        if(!q) return;
-
-        box.style.display = 'block';
-        box.innerHTML = '<p style="text-align:center">جاري استخراج الحل... ⏳</p>';
-
-        const res = await fetch('/ask', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({prompt: q})
-        });
-        const data = await res.json();
-
-        if(data.found) {
-            box.innerHTML = `
-                <div id="printable-area">
-                    <span class="res-title">${data.title}</span>
-                    <p><b>📄 الوثائق:</b> ${data.docs}</p>
-                    <p><b>💰 التكلفة:</b> ${data.cost}</p>
-                    <p><b>📍 المكان:</b> ${data.location}</p>
-                </div>
-                <div class="action-btns">
-                    <button class="btn btn-pdf" onclick="saveAsPDF()">📥 تحميل PDF</button>
-                    <a href="https://wa.me/?text=${encodeURIComponent('✅ معلومة من المنصة الوطنية: ' + data.title + '\nالوثائق: ' + data.docs)}" class="btn btn-wa" target="_blank">📲 واتساب</a>
-                </div>
-            `;
-        } else {
-            box.innerHTML = '<p style="color:red; text-align:center">لم نجد نتيجة. حاول بكلمة أخرى.</p>';
-        }
-    }
-
-    function saveAsPDF() {
-        const el = document.getElementById('printable-area');
-        html2pdf().from(el).set({margin: 10, filename: 'solution.pdf'}).save();
-    }
-
-    function doCalc() {
-        const n = document.getElementById('people').value;
-        document.getElementById('total-price').innerText = n > 0 ? `المجموع: ${n * 500} درهم` : "";
-    }
-
-    function fastFill(t) { document.getElementById('query-input').value = t; executeSearch(); }
-</script>
-
+    {% include "footer.html" %}
 </body>
 </html>
