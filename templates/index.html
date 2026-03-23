@@ -3,130 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنصة الوطنية للحلول الإدارية</title>
+    <title>المنصة الوطنية - دليل الحلول الذكي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        :root { --main-color: #1a6d36; --accent-color: #c1272d; --bg-color: #f4f7f6; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; display: flex; justify-content: center; }
-        .app-container { max-width: 500px; width: 100%; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        :root { --main: #1a6d36; --accent: #c1272d; --bg: #f4f7f6; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .app-container { max-width: 500px; margin: auto; background: white; border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
         
-        /* الرأس */
-        .header { text-align: center; margin-bottom: 30px; }
-        .header img { width: 60px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
-        .header h1 { color: var(--main-color); font-size: 24px; margin: 15px 0 5px; }
-        .header p { color: #777; font-size: 14px; margin: 0; }
-
-        /* صندوق البحث */
-        .search-section { position: relative; margin-bottom: 25px; }
-        .search-section input { width: 100%; padding: 18px 20px; border: 2px solid #eee; border-radius: 20px; font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .search-section input:focus { border-color: var(--main-color); box-shadow: 0 0 15px rgba(26, 109, 54, 0.1); }
-        .search-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: var(--main-color); color: white; border: none; padding: 10px 20px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header img { width: 60px; margin-bottom: 10px; }
+        
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 18px; border: 2px solid #eee; border-radius: 20px; font-size: 16px; outline: none; box-sizing: border-box; }
+        .search-btn { position: absolute; left: 8px; top: 8px; background: var(--main); color: white; border: none; padding: 10px 20px; border-radius: 15px; cursor: pointer; }
 
         /* منطقة النتائج */
-        #result-area { display: none; margin-top: 20px; padding: 20px; background: #f9fffb; border-radius: 20px; border: 1.5px solid #e0eee5; animation: fadeIn 0.5s; }
-        .result-title { color: var(--main-color); font-weight: bold; font-size: 18px; margin-bottom: 15px; display: block; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-        .info-row { margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
-        .info-label { font-weight: bold; color: var(--accent-color); }
-        .official-link { display: inline-block; margin-top: 15px; background: var(--accent-color); color: white; text-decoration: none; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: bold; width: 100%; text-align: center; box-sizing: border-box; }
+        #result-card { display: none; background: #fff; border: 2px solid #eef2f0; border-radius: 25px; padding: 20px; margin-top: 20px; animation: slideUp 0.4s ease; }
+        .res-title { color: var(--main); font-size: 20px; font-weight: bold; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; display: block; }
+        .data-item { margin-bottom: 12px; font-size: 15px; line-height: 1.6; }
+        .label { font-weight: bold; color: var(--accent); }
 
-        /* البطاقات السريعة */
-        .discovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .card { background: #fff; border: 1.5px solid #f0f0f0; padding: 20px 10px; border-radius: 20px; text-align: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .card:hover { transform: translateY(-5px); border-color: var(--main-color); box-shadow: 0 10px 20px rgba(26, 109, 54, 0.1); }
-        .card-emoji { font-size: 32px; display: block; margin-bottom: 10px; }
-        .card-text { font-size: 13px; font-weight: bold; color: #333; }
+        /* أزرار الأكشن */
+        .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; text-decoration: none; }
+        .btn-pdf { background: #f0f0f0; color: #333; }
+        .btn-wa { background: #25D366; color: white; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* قسم الحاسبة السريعة */
+        .tools-section { margin-top: 30px; background: #fff9f9; border-radius: 20px; padding: 15px; border: 1px dashed var(--accent); }
+        .calc-box input { width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-top: 10px; }
+
+        .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: var(--main); transform: translateY(-3px); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" alt="Morocco">
-        <h1>المنصة الوطنية للحلول</h1>
-        <p>دليلك الذكي للمساطر الإدارية بالمغرب</p>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" alt="المغرب">
+        <h1 style="color: var(--main); margin: 0;">المنصة الوطنية</h1>
+        <p style="color: #666; font-size: 13px;">دليل الخدمات والحقوق الضائعة بالمغرب</p>
     </div>
 
-    <div class="search-section">
-        <input type="text" id="user-input" placeholder="اكتب مشكلتك هنا..." autocomplete="off">
-        <button class="search-btn" onclick="startSearch()">بحث</button>
+    <div class="search-box">
+        <input type="text" id="query" placeholder="ابحث عن: جواز، دعم، تعويض..." onkeypress="if(event.key==='Enter') doSearch()">
+        <button class="search-btn" onclick="doSearch()">بحث</button>
     </div>
 
-    <div id="result-area">
-        <span class="result-title" id="res-title"></span>
-        <div class="info-row"><span class="info-label">📄 الوثائق: </span><span id="res-docs"></span></div>
-        <div class="info-row"><span class="info-label">💰 التكلفة: </span><span id="res-cost"></span></div>
-        <div class="info-row"><span class="info-label">⏳ الوقت: </span><span id="res-time"></span></div>
-        <div class="info-row"><span class="info-label">📍 المكان: </span><span id="res-loc"></span></div>
-        <a id="res-link" href="#" target="_blank" class="official-link">الموقع الرسمي للمسطرة</a>
-    </div>
-
-    <div id="discovery-section">
-        <p style="font-weight: bold; font-size: 15px; margin: 20px 0 10px;">✨ حلول قانونية قد تهمك:</p>
-        <div class="discovery-grid">
-            <div class="card" onclick="quickAction('استرجاع تأمين')">
-                <span class="card-emoji">💰</span>
-                <span class="card-text">استرجاع مال التأمين</span>
-            </div>
-            <div class="card" onclick="quickAction('حفرة الطريق')">
-                <span class="card-emoji">🕳️</span>
-                <span class="card-text">تعويض حفر الطرق</span>
-            </div>
-            <div class="card" onclick="quickAction('احتراق الأجهزة')">
-                <span class="card-emoji">🔌</span>
-                <span class="card-text">تعويض عطب الكهرباء</span>
-            </div>
-            <div class="card" onclick="quickAction('الرهن البنكي')">
-                <span class="card-emoji">⚠️</span>
-                <span class="card-text">رفع الرهن عن السيارة</span>
-            </div>
+    <div id="result-card">
+        <div id="pdf-content">
+            <span class="res-title" id="out-title"></span>
+            <div class="data-item"><span class="label">📄 الوثائق: </span><span id="out-docs"></span></div>
+            <div class="data-item"><span class="label">💰 التكلفة: </span><span id="out-cost"></span></div>
+            <div class="data-item"><span class="label">⏳ الوقت المتوقع: </span><span id="out-time"></span></div>
+            <div class="data-item"><span class="label">📍 المكان: </span><span id="out-loc"></span></div>
         </div>
+        
+        <div class="action-btns">
+            <button class="btn btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
+            <a id="wa-link" href="#" target="_blank" class="btn btn-wa">📲 واتساب</a>
+        </div>
+    </div>
+
+    <div class="tools-section">
+        <p style="font-weight: bold; margin: 0; color: var(--accent);">🧮 حاسبة تمبر (مثال):</p>
+        <div class="calc-box">
+            <small>احسب تكلفة تمبر جواز السفر لعدد من الأشخاص:</small><br>
+            <input type="number" id="people-count" placeholder="عدد الأشخاص" oninput="calcStamp()">
+            <p id="calc-result" style="font-weight: bold; color: var(--main); margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <p style="font-weight: bold; margin-top: 25px;">✨ اكتشف حلولاً ذكية:</p>
+    <div class="cards-grid">
+        <div class="card" onclick="quickFill('تعويض حفر')">💎 تعويض الحفر</div>
+        <div class="card" onclick="quickFill('دعم السكن')">🏠 دعم السكن</div>
+        <div class="card" onclick="quickFill('الرشوة')">🚫 تبليغ عن رشوة</div>
+        <div class="card" onclick="quickFill('الضياع')">🔑 ضياع الوثائق</div>
     </div>
 </div>
 
 <script>
-    function quickAction(term) {
-        document.getElementById('user-input').value = term;
-        startSearch();
+    // 1. وظيفة البحث
+    async function doSearch() {
+        const q = document.getElementById('query').value;
+        const card = document.getElementById('result-card');
+        if(!q) return;
+
+        card.style.display = 'block';
+        card.innerHTML = '<p style="text-align:center">جاري استخراج البيانات القانونية... ⏳</p>';
+
+        const res = await fetch('/ask', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt: q})
+        });
+        const data = await res.json();
+
+        if(data.found) {
+            renderResult(data);
+        } else {
+            card.innerHTML = '<p style="color:red; text-align:center">لم نجد معلومة مطابقة. حاول كتابة كلمات أبسط.</p>';
+        }
     }
 
-    async function startSearch() {
-        const query = document.getElementById('user-input').value;
-        const resultArea = document.getElementById('result-area');
-        const discovery = document.getElementById('discovery-section');
+    function renderResult(data) {
+        const card = document.getElementById('result-card');
+        card.innerHTML = `
+            <div id="pdf-content">
+                <span class="res-title">${data.title}</span>
+                <div class="data-item"><span class="label">📄 الوثائق: </span>${data.docs}</div>
+                <div class="data-item"><span class="label">💰 التكلفة: </span>${data.cost}</div>
+                <div class="data-item"><span class="label">⏳ الوقت: </span>${data.time}</div>
+                <div class="data-item"><span class="label">📍 المكان: </span>${data.location}</div>
+            </div>
+            <div class="action-btns">
+                <button class="btn btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
+                <a href="https://wa.me/?text=${encodeURIComponent('✅ معلومة من المنصة الوطنية: ' + data.title + ' - الوثائق: ' + data.docs)}" 
+                   target="_blank" class="btn btn-wa">📲 واتساب</a>
+            </div>
+        `;
+    }
 
-        if (!query) return;
+    // 2. وظيفة تحميل PDF (احترافية)
+    function downloadPDF() {
+        const element = document.getElementById('pdf-content');
+        const opt = {
+            margin: 1,
+            filename: 'al-manssa-info.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
 
-        // إظهار حالة البحث
-        resultArea.style.display = 'block';
-        resultArea.innerHTML = '<p style="text-align:center;">جاري جلب المعلومات... ⏳</p>';
+    // 3. الحاسبة (قيمة مضافة)
+    function calcStamp() {
+        const count = document.getElementById('people-count').value;
+        const total = count * 500;
+        document.getElementById('calc-result').innerText = count > 0 ? `المجموع: ${total} درهم` : "";
+    }
 
-        try {
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: query })
-            });
-
-            const data = await response.json();
-
-            if (data.found) {
-                // ملء البيانات في القالب
-                resultArea.innerHTML = `
-                    <span class="result-title">${data.title}</span>
-                    <div class="info-row"><span class="info-label">📄 الوثائق: </span>${data.docs}</div>
-                    <div class="info-row"><span class="info-label">💰 التكلفة: </span>${data.cost}</div>
-                    <div class="info-row"><span class="info-label">⏳ الوقت: </span>${data.time}</div>
-                    <div class="info-row"><span class="info-label">📍 المكان: </span>${data.location}</div>
-                    <a href="${data.link}" target="_blank" class="official-link">الموقع الرسمي للمسطرة</a>
-                `;
-            } else {
-                resultArea.innerHTML = '<p style="color:red; text-align:center;">لم نجد معلومات دقيقة، جرب كلمات أخرى مثل (جواز، بطاقة، تأمين)...</p>';
-            }
-        } catch (error) {
-            resultArea.innerHTML = '<p style="color:red;">حدث خطأ في الاتصال بالسيرفر.</p>';
-        }
+    function quickFill(txt) {
+        document.getElementById('query').value = txt;
+        doSearch();
     }
 </script>
 
