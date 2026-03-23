@@ -1,35 +1,35 @@
-import os, json
-from flask import Flask, render_template, request, jsonify
+import os
+import json
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
-def search_in_all_files(user_query):
-    user_query = user_query.lower().strip()
-    if not user_query: return None
-    
-    national_dir = 'national'
-    if not os.path.exists(national_dir): return None
+# تحديد المسار لمجلد national
+BASE_PATH = os.path.join(os.path.dirname(__file__), 'national')
 
-    # البحث في كل ملفات الـ JSON داخل مجلد national
-    for filename in os.listdir(national_dir):
-        if filename.endswith('.json'):
-            file_path = os.path.join(national_dir, filename)
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    solutions = data.get('solutions', [])
-                    
-                    for item in solutions:
-                        # دمج الكلمات المفتاحية والعنوان للبحث
-                        search_pool = " ".join(item.get('keywords', [])) + " " + item.get('title', '').lower()
-                        
-                        # إذا وجدنا الكلمة في أي ملف
-                        user_words = user_query.split()
-                        if any(word in search_pool for word in user_words):
-                            return item
-            except:
-                continue
-    return None
+def load_all_solutions():
+    """جمع كل الحلول من كل الملفات في قائمة واحدة كبيرة"""
+    all_solutions = []
+    if not os.path.exists(BASE_PATH):
+        return all_solutions
+    
+    for root, dirs, files in os.walk(BASE_PATH):
+        for file in files:
+            if file.endswith('.json'):
+                try:
+                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
+                        file_data = json.load(f)
+                        # إذا كان الملف يحتوي على قائمة باسم solutions
+                        if 'solutions' in file_data:
+                            all_solutions.extend(file_data['solutions'])
+                        # إذا كان الملف عبارة عن قاموس مباشر (مثل كودك القديم)
+                        else:
+                            for key, val in file_data.items():
+                                if isinstance(val, dict):
+                                    all_solutions.append(val)
+                except Exception as e:
+                    print(f"Error loading {file}: {e}")
+    return all_solutions
 
 @app.route('/')
 def index():
@@ -38,10 +38,37 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.get_json()
-    query = data.get('prompt', '')
-    result = search_in_all_files(query)
+    query = data.get('prompt', '').strip().lower()
     
-    if result:
-        return jsonify({"found": True, **result})
+    if not query:
+        return jsonify({"found": False})
+
+    # الحصول على كل الحلول من كل الملفات في مجلد national
+    solutions = load_all_solutions()
+    
+    # تقطيع جملة المستخدم لكلمات للبحث المرن
+    user_words = query.split()
+    
+    for item in solutions:
+        # جمع كل النصوص الممكنة للبحث فيها (العنوان + الكلمات المفتاحية)
+        title = item.get('title', '').lower()
+        keywords = " ".join(item.get('keywords', [])).lower()
+        search_pool = title + " " + keywords
+        
+        # إذا وجدت أي كلمة من كلمات المستخدم في نص الحل
+        if any(word in search_pool for word in user_words):
+            return jsonify({
+                "found": True,
+                "title": item.get('title'),
+                "docs": item.get('docs'),
+                "cost": item.get('cost'),
+                "time": item.get('time', 'غير محدد'),
+                "location": item.get('location'),
+                "link": item.get('link', '#')
+            })
+            
     return jsonify({"found": False})
+
+if __name__ == '__main__':
+    app.run(debug=True)
     
