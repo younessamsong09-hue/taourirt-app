@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنصة الوطنية - دليل الحلول الذكي</title>
+    <title>المنصة الوطنية للحلول الإدارية</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -13,12 +13,14 @@
         
         .header { text-align: center; margin-bottom: 25px; }
         .header img { width: 60px; margin-bottom: 10px; }
+        .header h1 { color: var(--main); margin: 0; font-size: 24px; }
         
+        /* البحث */
         .search-box { position: relative; margin-bottom: 20px; }
         .search-box input { width: 100%; padding: 18px; border: 2px solid #eee; border-radius: 20px; font-size: 16px; outline: none; box-sizing: border-box; }
         .search-btn { position: absolute; left: 8px; top: 8px; background: var(--main); color: white; border: none; padding: 10px 20px; border-radius: 15px; cursor: pointer; }
 
-        /* منطقة النتائج */
+        /* منطقة النتائج المحدثة */
         #result-card { display: none; background: #fff; border: 2px solid #eef2f0; border-radius: 25px; padding: 20px; margin-top: 20px; animation: slideUp 0.4s ease; }
         .res-title { color: var(--main); font-size: 20px; font-weight: bold; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; display: block; }
         .data-item { margin-bottom: 12px; font-size: 15px; line-height: 1.6; }
@@ -26,17 +28,18 @@
 
         /* أزرار الأكشن */
         .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn { padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; text-decoration: none; }
+        .btn { padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; text-decoration: none; text-align: center; }
         .btn-pdf { background: #f0f0f0; color: #333; }
         .btn-wa { background: #25D366; color: white; }
 
-        /* قسم الحاسبة السريعة */
+        /* الحاسبة الذكية */
         .tools-section { margin-top: 30px; background: #fff9f9; border-radius: 20px; padding: 15px; border: 1px dashed var(--accent); }
-        .calc-box input { width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin-top: 10px; }
+        .calc-box input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; }
 
+        /* البطاقات السريعة */
         .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .card { background: white; border: 1px solid #eee; padding: 15px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .card:hover { border-color: var(--main); transform: translateY(-3px); }
+        .card { background: white; border: 1.5px solid #f0f0f0; padding: 15px; border-radius: 18px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: var(--main); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -45,75 +48,79 @@
 
 <div class="app-container">
     <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" alt="المغرب">
-        <h1 style="color: var(--main); margin: 0;">المنصة الوطنية</h1>
-        <p style="color: #666; font-size: 13px;">دليل الخدمات والحقوق الضائعة بالمغرب</p>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" alt="Morocco">
+        <h1>المنصة الوطنية</h1>
+        <p style="color: #666; font-size: 13px;">دليل الحلول والمساطر الإدارية الذكي</p>
     </div>
 
     <div class="search-box">
-        <input type="text" id="query" placeholder="ابحث عن: جواز، دعم، تعويض..." onkeypress="if(event.key==='Enter') doSearch()">
+        <input type="text" id="query" placeholder="اكتب مشكلتك: سكن، جواز، حفرة..." onkeypress="if(event.key==='Enter') doSearch()">
         <button class="search-btn" onclick="doSearch()">بحث</button>
     </div>
 
     <div id="result-card">
         <div id="pdf-content">
-            <span class="res-title" id="out-title"></span>
-            <div class="data-item"><span class="label">📄 الوثائق: </span><span id="out-docs"></span></div>
-            <div class="data-item"><span class="label">💰 التكلفة: </span><span id="out-cost"></span></div>
-            <div class="data-item"><span class="label">⏳ الوقت المتوقع: </span><span id="out-time"></span></div>
-            <div class="data-item"><span class="label">📍 المكان: </span><span id="out-loc"></span></div>
+            <span class="res-title" id="res-title"></span>
+            <div id="res-body"></div>
         </div>
         
         <div class="action-btns">
-            <button class="btn btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
-            <a id="wa-link" href="#" target="_blank" class="btn btn-wa">📲 واتساب</a>
+            <button class="btn btn-pdf" onclick="downloadPDF()">📥 حفظ كـ PDF</button>
+            <a id="wa-share" href="#" target="_blank" class="btn btn-wa">📲 مشاركة واتساب</a>
         </div>
     </div>
 
     <div class="tools-section">
-        <p style="font-weight: bold; margin: 0; color: var(--accent);">🧮 حاسبة تمبر (مثال):</p>
+        <p style="font-weight: bold; margin: 0; color: var(--accent);">🧮 حاسبة التكاليف السريعة:</p>
         <div class="calc-box">
-            <small>احسب تكلفة تمبر جواز السفر لعدد من الأشخاص:</small><br>
-            <input type="number" id="people-count" placeholder="عدد الأشخاص" oninput="calcStamp()">
+            <small>احسب مجموع تمبر جواز السفر لعدة أشخاص:</small>
+            <input type="number" id="stamp-count" placeholder="أدخل عدد الأشخاص" oninput="runCalc()">
             <p id="calc-result" style="font-weight: bold; color: var(--main); margin-top: 10px;"></p>
         </div>
     </div>
 
-    <p style="font-weight: bold; margin-top: 25px;">✨ اكتشف حلولاً ذكية:</p>
+    <p style="font-weight: bold; margin-top: 25px;">✨ حلول سريعة تهمك:</p>
     <div class="cards-grid">
-        <div class="card" onclick="quickFill('تعويض حفر')">💎 تعويض الحفر</div>
         <div class="card" onclick="quickFill('دعم السكن')">🏠 دعم السكن</div>
-        <div class="card" onclick="quickFill('الرشوة')">🚫 تبليغ عن رشوة</div>
-        <div class="card" onclick="quickFill('الضياع')">🔑 ضياع الوثائق</div>
+        <div class="card" onclick="quickFill('حفرة الطريق')">🕳️ تعويض الحفر</div>
+        <div class="card" onclick="quickFill('جواز السفر')">🛂 جواز السفر</div>
+        <div class="card" onclick="quickFill('الرشوة')">🚫 تبليغ رشوة</div>
     </div>
 </div>
 
 <script>
-    // 1. وظيفة البحث
+    // 1. وظيفة البحث المتطورة
     async function doSearch() {
         const q = document.getElementById('query').value;
         const card = document.getElementById('result-card');
         if(!q) return;
 
         card.style.display = 'block';
-        card.innerHTML = '<p style="text-align:center">جاري استخراج البيانات القانونية... ⏳</p>';
+        card.innerHTML = '<p style="text-align:center">جاري استخراج الحلول القانونية... ⏳</p>';
 
-        const res = await fetch('/ask', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({prompt: q})
-        });
-        const data = await res.json();
+        try {
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt: q})
+            });
+            const data = await response.json();
 
-        if(data.found) {
-            renderResult(data);
-        } else {
-            card.innerHTML = '<p style="color:red; text-align:center">لم نجد معلومة مطابقة. حاول كتابة كلمات أبسط.</p>';
+            if(data.found) {
+                showResult(data);
+            } else {
+                card.innerHTML = '<p style="color:red; text-align:center">عذراً، لم نجد معلومة دقيقة. جرب كلمات أبسط.</p>';
+            }
+        } catch (e) {
+            card.innerHTML = '<p style="color:red; text-align:center">خطأ في الاتصال بالسيرفر.</p>';
         }
     }
 
-    function renderResult(data) {
+    // 2. عرض النتيجة وتجهيز الروابط
+    function showResult(data) {
         const card = document.getElementById('result-card');
+        const waMsg = encodeURIComponent(`✅ معلومة من "المنصة الوطنية":\n🔹 ${data.title}\n📄 الوثائق: ${data.docs}\n💰 التكلفة: ${data.cost}\n🔗 المصدر: ${window.location.href}`);
+        
         card.innerHTML = `
             <div id="pdf-content">
                 <span class="res-title">${data.title}</span>
@@ -123,31 +130,31 @@
                 <div class="data-item"><span class="label">📍 المكان: </span>${data.location}</div>
             </div>
             <div class="action-btns">
-                <button class="btn btn-pdf" onclick="downloadPDF()">📥 تحميل PDF</button>
-                <a href="https://wa.me/?text=${encodeURIComponent('✅ معلومة من المنصة الوطنية: ' + data.title + ' - الوثائق: ' + data.docs)}" 
-                   target="_blank" class="btn btn-wa">📲 واتساب</a>
+                <button class="btn btn-pdf" onclick="downloadPDF()">📥 حفظ كـ PDF</button>
+                <a href="https://wa.me/?text=${waMsg}" target="_blank" class="btn btn-wa">📲 مشاركة واتساب</a>
             </div>
+            <a href="${data.link}" target="_blank" style="display:block; text-align:center; margin-top:15px; color:var(--main); font-size:13px;">زيارة الموقع الرسمي للمسطرة</a>
         `;
     }
 
-    // 2. وظيفة تحميل PDF (احترافية)
+    // 3. ميزة تحميل PDF
     function downloadPDF() {
         const element = document.getElementById('pdf-content');
         const opt = {
-            margin: 1,
-            filename: 'al-manssa-info.pdf',
+            margin: 10,
+            filename: 'Manssa_Solution.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
     }
 
-    // 3. الحاسبة (قيمة مضافة)
-    function calcStamp() {
-        const count = document.getElementById('people-count').value;
-        const total = count * 500;
-        document.getElementById('calc-result').innerText = count > 0 ? `المجموع: ${total} درهم` : "";
+    // 4. الحاسبة التفاعلية
+    function runCalc() {
+        const val = document.getElementById('stamp-count').value;
+        const result = val * 500;
+        document.getElementById('calc-result').innerText = val > 0 ? `المجموع الإجمالي: ${result} درهم` : "";
     }
 
     function quickFill(txt) {
