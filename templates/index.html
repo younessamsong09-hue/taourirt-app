@@ -26,17 +26,20 @@
         <div class="quick-card" onclick="fastAction('تعويض عطب الكهرباء')">🔌<br>تعويض عطب الكهرباء</div>
     </div>
 
-    <div id="results-display" style="display: none; margin-top: 25px; background: #fff; border-radius: 25px; padding: 20px; border: 2px solid #f0f0f0;"></div>
+    <div id="results-display" style="display: none; margin-top: 25px; background: #fff; border-radius: 25px; padding: 25px; border: 2px solid #f0f0f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05);"></div>
 
     <style>
         .quick-card { background: white; border: 1px solid #eee; padding: 25px; border-radius: 25px; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
         .quick-card:hover { border-color: var(--main); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .active-mic { color: var(--accent); animation: pulse 1s infinite; }
+        .action-btn { padding: 10px 15px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; color: #333; background: #f9f9f9; transition: 0.2s; }
+        .action-btn:hover { background: #eee; }
+        .btn-main { background: var(--main) !important; color: white !important; border: none !important; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 
     <script>
-        // دالة البحث الصوتي بالدارجة
+        // دالة البحث الصوتي
         function startVoiceSearch() {
             const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
             if(!Speech) return alert("المتصفح لا يدعم الصوت");
@@ -51,34 +54,61 @@
             recognition.start();
         }
 
-        // دالة البحث الأساسية
+        // دالة البحث الأساسية المحدثة لاستحضار الروابط
         async function runSearch() {
             const q = document.getElementById('user-query').value;
             const display = document.getElementById('results-display');
             if(!q) return;
 
             display.style.display = 'block';
-            display.innerHTML = '<p style="text-align:center">جاري البحث في المساطر الإدارية... ⏳</p>';
+            display.innerHTML = '<p style="text-align:center">جاري البحث في 25 قاعدة بيانات... ⏳</p>';
 
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: q})
-            });
-            const data = await response.json();
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: q})
+                });
+                const data = await response.json();
 
-            if(data.found) {
-                display.innerHTML = `
-                    <h3 style="color:var(--main); margin-top:0;">${data.title}</h3>
-                    <p><b>📄 الوثائق:</b> ${data.docs}</p>
-                    <p><b>💰 التكلفة:</b> ${data.cost}</p>
-                    <p><b>📍 المكان:</b> ${data.location}</p>
-                    <div style="margin-top:15px;">
-                        <button onclick="window.print()" style="padding:10px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">📥 طباعة الدليل</button>
-                    </div>
-                `;
-            } else {
-                display.innerHTML = '<p style="color:red; text-align:center">عذراً، لم نجد معلومة مطابقة. حاول صياغة البحث بشكل مختلف.</p>';
+                if(data.found) {
+                    let html = `
+                        <h3 style="color:var(--main); margin-top:0; font-size: 20px; border-bottom: 2px solid #f9f9f9; padding-bottom: 10px;">${data.title}</h3>
+                        <div style="line-height: 1.8; color: #444; margin-top: 15px;">
+                            <p><b>📄 الوثائق المطلوبة:</b><br>${data.docs}</p>
+                            <p><b>💰 التكلفة التقديرية:</b> ${data.cost}</p>
+                            <p><b>📍 مكان الإيداع:</b> ${data.location}</p>
+                            ${data.time ? `<p><b>⏳ الوقت المتوقع:</b> ${data.time}</p>` : ''}
+                        </div>
+                        
+                        <div style="margin-top:20px; display: flex; flex-wrap: wrap; gap: 10px; border-top: 1px solid #eee; padding-top: 20px;">
+                            ${data.link ? `
+                                <a href="${data.link}" target="_blank" class="action-btn btn-main">
+                                    🌐 زيارة الموقع الرسمي
+                                </a>
+                            ` : ''}
+                            
+                            <button onclick="window.print()" class="action-btn">
+                                📥 طباعة الدليل
+                            </button>
+
+                            <a href="https://wa.me/?text=${encodeURIComponent('اكتشفت طريقة لـ ' + data.title + ' عبر المنصة الوطنية للحلول: ' + (data.link || window.location.href))}" 
+                               target="_blank" class="action-btn" style="color: #25D366;">
+                                💬 مشاركة واتساب
+                            </a>
+                        </div>
+                    `;
+                    display.innerHTML = html;
+                } else {
+                    display.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color:#e74c3c; font-weight: bold;">عذراً، لم نجد معلومة مطابقة في الـ 25 ملفاً.</p>
+                            <p style="font-size: 13px; color: #777;">حاول البحث بكلمة واحدة مثل "سكن"، "رخصة"، أو "ضريبة".</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                display.innerHTML = '<p style="color:red; text-align:center">عذراً، حدث خطأ في الاتصال بالسيرفر.</p>';
             }
         }
 
