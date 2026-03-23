@@ -4,31 +4,36 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
-# تحديد المسار لمجلد national الذي يحتوي على ملفاتك الـ 25
+# المسار الرئيسي لقاعدة البيانات
 BASE_PATH = os.path.join(os.path.dirname(__file__), 'national')
 
-def load_mega_database():
-    """وظيفة لجمع كل الحلول من كافة ملفات JSON"""
-    all_solutions = []
+def get_all_solutions():
+    """وظيفة ذكية تقرأ أي عدد من الملفات في أي مجلد فرعي داخل national"""
+    all_data = []
     if not os.path.exists(BASE_PATH):
-        return all_solutions
-    
-    for file in os.listdir(BASE_PATH):
-        if file.endswith('.json'):
-            try:
-                with open(os.path.join(BASE_PATH, file), 'r', encoding='utf-8') as f:
-                    file_data = json.load(f)
-                    # دعم نظام القوائم (solutions) الموجود في ملفاتك الجديدة
-                    if 'solutions' in file_data:
-                        all_solutions.extend(file_data['solutions'])
-                    # دعم النظام القديم إذا وجد
-                    else:
-                        for val in file_data.values():
-                            if isinstance(val, dict):
-                                all_solutions.append(val)
-            except Exception as e:
-                print(f"Error loading {file}: {e}")
-    return all_solutions
+        return all_data
+
+    # os.walk تسمح لنا بالدخول للمجلدات الفرعية أيضاً مستقبلاً
+    for root, dirs, files in os.walk(BASE_PATH):
+        for file in files:
+            if file.endswith('.json'):
+                file_path = os.path.join(root, file)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = json.load(f)
+                        # استخراج البيانات سواء كانت قائمة أو قاموس
+                        if isinstance(content, dict) and 'solutions' in content:
+                            all_data.extend(content['solutions'])
+                        elif isinstance(content, list):
+                            all_data.extend(content)
+                        elif isinstance(content, dict):
+                            # إذا كان الملف عبارة عن قاموس مباشر (النظام القديم)
+                            for key, value in content.items():
+                                if isinstance(value, dict):
+                                    all_data.append(value)
+                except Exception as e:
+                    print(f"⚠️ خطأ في قراءة الملف {file}: {e}")
+    return all_data
 
 @app.route('/')
 def index():
@@ -37,29 +42,34 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.get_json()
-    query = data.get('prompt', '').strip().lower()
+    user_query = data.get('prompt', '').strip().lower()
     
-    if not query:
+    if not user_query:
         return jsonify({"found": False})
 
-    database = load_mega_database()
-    user_words = query.split()
-    
-    for item in database:
-        # البحث في العنوان والكلمات المفتاحية
-        search_pool = (item.get('title', '') + " " + " ".join(item.get('keywords', []))).lower()
+    # جلب كل البيانات من الـ 25 ملفاً (أو أكثر)
+    all_solutions = get_all_solutions()
+    search_words = user_query.split()
+
+    for item in all_solutions:
+        # البحث في العنوان، الكلمات المفتاحية، وحتى مكان الإيداع لزيادة دقة النتائج
+        title = str(item.get('title', '')).lower()
+        keywords = " ".join(item.get('keywords', [])).lower()
+        location = str(item.get('location', '')).lower()
         
-        if any(word in search_pool for word in user_words):
+        search_pool = f"{title} {keywords} {location}"
+        
+        if any(word in search_pool for word in search_words):
             return jsonify({
                 "found": True,
                 "title": item.get('title'),
                 "docs": item.get('docs'),
                 "cost": item.get('cost'),
-                "time": item.get('time', 'غير محدد'),
                 "location": item.get('location'),
-                "link": item.get('link', '') # هنا يتم استحضار الرابط الإلكتروني
+                "time": item.get('time', 'غير محدد'),
+                "link": item.get('link', '') # سيبقى جاهزاً لليوم الذي تقرر فيه تفعيله
             })
-            
+
     return jsonify({"found": False})
 
 if __name__ == '__main__':
