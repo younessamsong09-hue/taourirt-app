@@ -1,27 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% include "includes/urgent_news.html" ignore missing %}
-
-    {% include "includes/stats_bar.html" ignore missing %}
-
-    <div style="text-align: center; margin: 30px 0; animation: fadeIn 1s;">
-        <h1 style="font-size: 26px; color: var(--main-green); margin-bottom: 10px;">دليلك الإداري الذكي 🇲🇦</h1>
-        <p style="color: #718096; font-size: 14px;">ابحث عن أي مسطرة إدارية أو وثيقة قانونية في ثوانٍ</p>
+    <div style="text-align: center; margin: 35px 0;">
+        <h1 style="color: var(--main-green); font-size: 26px; margin-bottom: 10px;">تاوريرت هب - Taourirt Hub</h1>
+        <p style="color: #64748b; font-size: 14px;">دليلك المحلي الذكي للوثائق والمساطر الإدارية 🇲🇦</p>
     </div>
 
-    {% include "includes/search_bar.html" ignore missing %}
-
-    {% include "includes/live_tips.html" ignore missing %}
+    {% include "includes/search_bar.html" %}
 
     <div style="margin-top: 30px;">
-        <p style="font-weight: bold; margin-bottom: 15px; color: #4a5568; display: flex; align-items: center; gap: 8px;">
-            <span>📂</span> خدمات تهمك في تاوريرت:
-        </p>
-        {% include "includes/categories.html" ignore missing %}
+        <p style="font-weight: bold; margin-bottom: 15px; color: #334155;">📂 خدمات سريعة:</p>
+        {% include "includes/categories.html" %}
     </div>
-    
-    <div id="results-area" style="margin-top: 30px; min-height: 100px;">
+
+    <div id="results-area" style="margin-top: 30px; min-height: 150px;">
         <div id="results-display" style="display: none;"></div>
         {% include "includes/results_area.html" ignore missing %}
     </div>
@@ -29,21 +21,21 @@
     {% include "includes/floating_assistant.html" ignore missing %}
 
     <script>
+        // دالة البحث الأساسية
         async function runSearch() {
             const queryInput = document.getElementById('user-query');
             const query = queryInput.value.trim();
             const display = document.getElementById('results-display');
             
             if(!query) {
-                queryInput.style.border = '2px solid #ff4757';
+                queryInput.style.borderColor = '#ef4444';
                 return;
             }
 
             display.style.display = 'block';
             display.innerHTML = `
-                <div style="text-align:center; padding:30px; background:white; border-radius:20px;">
-                    <div class="loader"></div>
-                    <p style="margin-top:15px; color:#666;">جاري البحث عن "${query}"...</p>
+                <div style="text-align:center; padding:30px; background:white; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+                    <p style="color:#64748b;">🔍 جاري البحث عن "${query}"...</p>
                 </div>
             `;
 
@@ -56,31 +48,28 @@
                 const data = await response.json();
 
                 if(data.found) {
-                    const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `
-                        <div style="background:#f8fafc; padding:10px; margin-bottom:8px; border-right:4px solid var(--main-green); border-radius:8px;">
-                            ✅ ${doc.trim()}
-                        </div>
-                    `).join('');
-                    
                     display.innerHTML = `
-                        <div style="background:white; border-radius:20px; padding:25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); animation: slideUp 0.5s;">
-                            <h3 style="color:var(--main-green); border-bottom:1px solid #eee; padding-bottom:10px;">${data.title}</h3>
-                            <div style="margin:20px 0;">${docsList}</div>
-                            <div style="background:#fff9db; padding:15px; border-radius:12px; font-size:14px;">
-                                📍 <b>المكان:</b> ${data.location}<br>
-                                💰 <b>التكلفة:</b> ${data.cost || 'مجانية'}
+                        <div style="background:white; border-radius:20px; padding:25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border:1px solid #e2e8f0; animation: fadeIn 0.5s;">
+                            <h3 style="color:var(--main-green); border-bottom:2px solid #f1f5f9; padding-bottom:12px; margin-bottom:15px;">${data.title}</h3>
+                            <p style="line-height:1.7; color:#334155;">${data.docs}</p>
+                            <div style="background:#f8fafc; padding:15px; border-radius:12px; margin-top:20px; font-size:14px;">
+                                📍 <b>المكان:</b> ${data.location}
                             </div>
-                            <button onclick="window.print()" style="width:100%; margin-top:20px; padding:15px; border-radius:10px; border:none; background:#eee; font-weight:bold;">طباعة الدليل</button>
                         </div>
                     `;
                 } else {
-                    display.innerHTML = `<div style="text-align:center; padding:30px; background:white; border-radius:20px;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>`;
+                    display.innerHTML = `
+                        <div style="text-align:center; padding:30px; background:white; border-radius:15px;">
+                            <p style="color:#64748b;">🧐 لم نجد نتائج لـ "${query}"، جرب كلمات أبسط.</p>
+                        </div>
+                    `;
                 }
             } catch (e) {
-                display.innerHTML = "حدث خطأ في الاتصال.";
+                display.innerHTML = '<div style="color:#ef4444; text-align:center; padding:20px;">خطأ في الاتصال بالسيرفر.</div>';
             }
         }
 
+        // دالة للأزرار السريعة
         function fastAction(val) {
             document.getElementById('user-query').value = val;
             runSearch();
@@ -88,9 +77,6 @@
     </script>
 
     <style>
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--main-green); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10deg); } to { opacity: 1; transform: translateY(0); } }
     </style>
 {% endblock %}
