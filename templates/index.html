@@ -1,52 +1,71 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% include "ticker.html" %}
-
     <div style="text-align: center; margin: 30px 0;">
-        <h1 style="color: var(--main); font-size: 26px;">المنصة الوطنية للحلول</h1>
-        <p style="color: #666; font-size: 14px;">دليلك الذكي للمساطر الإدارية</p>
+        <h1 style="font-size: 28px; color: var(--main-green); margin-bottom: 10px;">دليلك الإداري الذكي</h1>
+        <p style="color: #718096;">ابحث عن أي مسطرة إدارية أو وثيقة قانونية</p>
     </div>
 
     {% include "includes/search_bar.html" %}
     {% include "includes/categories.html" %}
-    {% include "includes/results_area.html" %}
+    
+    <div id="results-area">
+        {% include "includes/results_area.html" %}
+    </div>
 
     <script>
-        // كود البحث الذكي للربط مع app.py والـ 25 ملف JSON
         async function runSearch() {
             const query = document.getElementById('user-query').value;
             const display = document.getElementById('results-display');
             if(!query) return;
 
             display.style.display = 'block';
-            display.innerHTML = '<div style="text-align:center">جاري البحث في القواعد الوطنية... ⏳</div>';
+            display.innerHTML = '<div style="text-align:center; padding:20px;">🔍 جاري فحص السجلات الوطنية...</div>';
 
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: query})
-            });
-            const data = await response.json();
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: query})
+                });
+                const data = await response.json();
 
-            if(data.found) {
-                const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `<li>✅ ${doc.trim()}</li>`).join('');
-                display.innerHTML = `
-                    <h3 style="color:var(--main); border-bottom:1px solid #eee; padding-bottom:10px;">${data.title}</h3>
-                    <div style="margin-top:15px;">
-                        <p><b>📄 الوثائق المطلوبة:</b></p>
-                        <ul style="list-style:none; padding:0;">${docsList}</ul>
-                        <p><b>💰 التكلفة:</b> ${data.cost}</p>
-                        <p><b>📍 المكان:</b> ${data.location}</p>
-                    </div>
-                `;
-            } else {
-                display.innerHTML = '<p style="color:red; text-align:center;">لم نجد نتيجة، حاول بكلمات مختلفة.</p>';
+                if(data.found) {
+                    const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `<div style="background:#f8fafc; padding:10px; margin-bottom:8px; border-right:4px solid var(--main-green); border-radius:4px;">✅ ${doc.trim()}</div>`).join('');
+                    
+                    display.innerHTML = `
+                        <div class="result-card">
+                            <h3 style="color:var(--main-green); border-bottom:2px solid #f1f5f9; padding-bottom:15px;">${data.title}</h3>
+                            <div style="margin:20px 0;">
+                                <p style="font-weight:bold; color:#4a5568;">📄 الوثائق المطلوبة:</p>
+                                ${docsList}
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#fff9db; padding:15px; border-radius:12px; margin-bottom:20px;">
+                                <div>⏱️ <b>الوقت:</b> ${data.time}</div>
+                                <div>💰 <b>التكلفة:</b> ${data.cost}</div>
+                                <div style="grid-column: span 2;">📍 <b>المكان:</b> ${data.location}</div>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="window.print()" class="btn-action btn-print">🖨️ طباعة</button>
+                                <button onclick="shareWhatsApp('${data.title}', '${data.docs}')" class="btn-action btn-whatsapp">💬 واتساب</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    display.innerHTML = '<div class="result-card" style="text-align:center; color:#e53e3e;">❌ عذراً، لم نجد نتيجة دقيقة. حاول تجربة كلمات أخرى.</div>';
+                }
+            } catch (e) {
+                display.innerHTML = '<div class="result-card">حدث خطأ في الاتصال بالسيرفر.</div>';
             }
         }
 
-        function fastAction(text) {
-            document.getElementById('user-query').value = text;
+        function shareWhatsApp(title, docs) {
+            const text = `*دليل المنصة الوطنية للحلول*\n\n📋 *الموضوع:* ${title}\n\n📄 *الوثائق المطلوبة:* \n${docs}\n\n_تم الاستخراج عبر تاوريرت هب 🇲🇦_`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function fastAction(val) {
+            document.getElementById('user-query').value = val;
             runSearch();
         }
     </script>
