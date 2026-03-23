@@ -1,19 +1,51 @@
-<div class="search-container" style="position: relative; margin: 40px 0;">
-    <input type="text" id="user-query" 
-           placeholder="ما الذي يشغل بالك اليوم؟ (مثلاً: ضياع البطاقة)" 
-           style="width: 100%; padding: 20px 60px 20px 25px; border-radius: 30px; border: 2px solid transparent; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.05); font-size: 16px; outline: none; transition: 0.4s; box-sizing: border-box;">
-    
-    <button onclick="runSearch()" 
-            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: var(--main-green); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(26, 94, 50, 0.3);">
-        🔍
-    </button>
+<div class="search-wrapper" style="position: relative; margin: 30px 0;">
+    <div style="background: white; padding: 10px 15px; border-radius: 50px; box-shadow: var(--shadow); display: flex; align-items: center; border: 2px solid var(--main-green);">
+        
+        <button onclick="startVoice()" id="voice-btn" style="background: #f8fafc; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; transition: 0.3s;">
+            🎤
+        </button>
+
+        <input type="text" id="user-query" placeholder="تحدث أو اكتب مشكلتك..." 
+               style="flex: 1; border: none; outline: none; font-family: 'Tajawal'; font-size: 16px; padding: 0 15px; background: transparent;">
+        
+        <button onclick="runSearch()" style="background: var(--main-green); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; transition: 0.3s;">
+            🔍
+        </button>
+    </div>
+    <div id="voice-status" style="text-align: center; font-size: 12px; color: var(--main-green); margin-top: 5px; font-weight: bold; display: none;">
+        🔴 جاري الاستماع.. تحدث الآن
+    </div>
 </div>
 
-<style>
-    #user-query:focus {
-        border-color: var(--main-green);
-        box-shadow: 0 15px 35px rgba(26, 94, 50, 0.1);
-        transform: translateY(-2px);
-    }
-</style>
+<script>
+    function startVoice() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("عذراً، متصفحك لا يدعم البحث الصوتي. جرب متصفح Chrome.");
+            return;
+        }
 
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ar-MA'; // دعم الدارجة واللغة العربية
+        const voiceBtn = document.getElementById('voice-btn');
+        const status = document.getElementById('voice-status');
+
+        recognition.onstart = () => {
+            voiceBtn.style.background = '#ff4757';
+            voiceBtn.style.color = 'white';
+            status.style.display = 'block';
+        };
+
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            document.getElementById('user-query').value = text;
+            runSearch(); // ابحث تلقائياً بعد سماع الصوت
+        };
+
+        recognition.onend = () => {
+            voiceBtn.style.background = '#f8fafc';
+            status.style.display = 'none';
+        };
+
+        recognition.start();
+    }
+</script>
