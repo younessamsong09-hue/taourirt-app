@@ -1,82 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div style="text-align: center; margin: 35px 0;">
-        <h1 style="color: var(--main-green); font-size: 26px; margin-bottom: 10px;">تاوريرت هب - Taourirt Hub</h1>
-        <p style="color: #64748b; font-size: 14px;">دليلك المحلي الذكي للوثائق والمساطر الإدارية 🇲🇦</p>
+    <div style="text-align: center; padding: 50px;">
+        <h1 style="color: green;">الموقع يعمل بنجاح! ✅</h1>
+        <p>إذا رأيت هذه الرسالة، فالمشكلة كانت في أحد ملفات الـ includes.</p>
+        <button onclick="location.reload()" style="padding: 10px 20px;">تحديث الصفحة</button>
     </div>
-
-    {% include "includes/search_bar.html" %}
-
-    <div style="margin-top: 30px;">
-        <p style="font-weight: bold; margin-bottom: 15px; color: #334155;">📂 خدمات سريعة:</p>
-        {% include "includes/categories.html" %}
-    </div>
-
-    <div id="results-area" style="margin-top: 30px; min-height: 150px;">
-        <div id="results-display" style="display: none;"></div>
-        {% include "includes/results_area.html" ignore missing %}
-    </div>
-
-    {% include "includes/floating_assistant.html" ignore missing %}
-
-    <script>
-        // دالة البحث الأساسية
-        async function runSearch() {
-            const queryInput = document.getElementById('user-query');
-            const query = queryInput.value.trim();
-            const display = document.getElementById('results-display');
-            
-            if(!query) {
-                queryInput.style.borderColor = '#ef4444';
-                return;
-            }
-
-            display.style.display = 'block';
-            display.innerHTML = `
-                <div style="text-align:center; padding:30px; background:white; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
-                    <p style="color:#64748b;">🔍 جاري البحث عن "${query}"...</p>
-                </div>
-            `;
-
-            try {
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({prompt: query})
-                });
-                const data = await response.json();
-
-                if(data.found) {
-                    display.innerHTML = `
-                        <div style="background:white; border-radius:20px; padding:25px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border:1px solid #e2e8f0; animation: fadeIn 0.5s;">
-                            <h3 style="color:var(--main-green); border-bottom:2px solid #f1f5f9; padding-bottom:12px; margin-bottom:15px;">${data.title}</h3>
-                            <p style="line-height:1.7; color:#334155;">${data.docs}</p>
-                            <div style="background:#f8fafc; padding:15px; border-radius:12px; margin-top:20px; font-size:14px;">
-                                📍 <b>المكان:</b> ${data.location}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    display.innerHTML = `
-                        <div style="text-align:center; padding:30px; background:white; border-radius:15px;">
-                            <p style="color:#64748b;">🧐 لم نجد نتائج لـ "${query}"، جرب كلمات أبسط.</p>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                display.innerHTML = '<div style="color:#ef4444; text-align:center; padding:20px;">خطأ في الاتصال بالسيرفر.</div>';
-            }
-        }
-
-        // دالة للأزرار السريعة
-        function fastAction(val) {
-            document.getElementById('user-query').value = val;
-            runSearch();
-        }
-    </script>
-
-    <style>
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10deg); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 {% endblock %}
