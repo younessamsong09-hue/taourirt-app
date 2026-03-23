@@ -1,136 +1,122 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div style="text-align: center; margin: 30px 0; animation: fadeIn 0.8s ease;">
-        <div style="display: inline-block; background: #fff1f2; padding: 5px 15px; border-radius: 50px; border: 1px solid #fecaca; margin-bottom: 15px;">
-            <span style="font-size: 14px; color: #991b1b; font-weight: bold;">🇲🇦 المنصة الوطنية للخدمات الإدارية</span>
+<div class="national-portal-wrapper" style="direction: rtl; font-family: 'Tajawal', sans-serif; padding-bottom: 50px;">
+    
+    <header class="hero-header" style="text-align: center; padding: 40px 15px;">
+        <div class="national-tag" style="display: inline-flex; align-items: center; gap: 10px; background: #fff; padding: 7px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 25px;">
+            <span style="font-size: 18px;">🇲🇦</span>
+            <span style="font-size: 13px; color: #1a5e32; font-weight: 800; letter-spacing: 0.5px;">المملكة المغربية | البوابة الوطنية الموحدة</span>
         </div>
-        <h1 style="color: var(--main-green); font-size: 24px; margin-bottom: 10px;">دليلك الذكي للمساطر القانونية</h1>
-        <p style="color: #64748b; font-size: 15px;">خدمة مغربية 100% لتسهيل حياتك الإدارية</p>
-    </div>
+        <h1 style="font-size: 30px; font-weight: 900; color: #1e293b; margin: 0; line-height: 1.3;">دليل <span style="color: #1a5e32;">المواطن</span> للخدمات الإدارية</h1>
+        <p style="color: #64748b; font-size: 15px; margin-top: 12px; max-width: 450px; margin-left: auto; margin-right: auto;">كل ما تحتاجه من وثائق ومساطر قانونية، مجتمعة في منصة واحدة ذكية.</p>
+    </header>
 
-    <div style="margin-bottom: 35px;">
+    <section class="search-section" style="margin-bottom: 40px;">
         {% include "includes/search_bar.html" %}
-    </div>
+    </section>
 
-    <div style="margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="font-size: 16px; color: #1e293b; margin: 0;">📂 خدمات إدارية مستعجلة:</h3>
-            <span style="font-size: 12px; color: var(--main-green); font-weight: bold;">تحديث 2026</span>
+    <section class="stats-section" style="margin-bottom: 40px;">
+        {% include "includes/stats_bar.html" ignore missing %}
+    </section>
+
+    <section class="categories-section" style="margin-top: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 0 10px;">
+            <div style="width: 4px; height: 20px; background: #1a5e32; border-radius: 10px;"></div>
+            <h3 style="font-size: 17px; color: #334155; margin: 0;">الخدمات الإدارية المركزية</h3>
         </div>
         {% include "includes/categories.html" %}
-    </div>
+    </section>
 
-    <div id="results-area" style="margin-top: 40px; min-height: 250px;">
+    <section id="results-area" style="margin-top: 45px;">
         <div id="results-display" style="display: none;"></div>
         {% include "includes/results_area.html" ignore missing %}
-    </div>
+    </section>
 
     {% include "includes/floating_assistant.html" ignore missing %}
 
-    <script>
-        async function runSearch() {
-            const queryInput = document.getElementById('user-query');
-            const query = queryInput.value.trim();
-            const display = document.getElementById('results-display');
-            
-            if(!query) {
-                queryInput.parentElement.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
-                return;
+</div>
+
+<script>
+    async function runSearch() {
+        const queryInput = document.getElementById('user-query');
+        const query = queryInput.value.trim();
+        const display = document.getElementById('results-display');
+        
+        if(!query) return;
+
+        display.style.display = 'block';
+        display.innerHTML = `
+            <div class="loading-state" style="text-align:center; padding:50px; background:white; border-radius:30px; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+                <div class="royal-loader"></div>
+                <p style="margin-top:20px; color:#64748b; font-weight:600;">جاري استخراج البيانات من الدليل الوطني الموحد...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt: query})
+            });
+            const data = await response.json();
+
+            if(data.found) {
+                // تقسيم النصوص إلى بطاقات صغيرة
+                const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `
+                    <div class="doc-card-mini">
+                        <div class="icon-check">✓</div>
+                        <p>${doc.trim()}</p>
+                    </div>
+                `).join('');
+                
+                display.innerHTML = `
+                    <div class="grand-result-card">
+                        <div class="card-header">
+                            <div class="emblem">🇲🇦</div>
+                            <h2>${data.title}</h2>
+                        </div>
+                        <div class="docs-grid-layout">${docsList}</div>
+                        <div class="card-footer">
+                            <div class="footer-item"><span>📍</span> <b>الإدارة المختصة:</b> ${data.location}</div>
+                            ${data.cost ? `<div class="footer-item"><span>💰</span> <b>الرسوم:</b> ${data.cost}</div>` : ''}
+                        </div>
+                        <button onclick="window.print()" class="print-action-btn">تحميل نسخة رسمية (PDF)</button>
+                    </div>
+                `;
+            } else {
+                display.innerHTML = `<div class="not-found-msg">نعتذر، لم نجد نتائج مطابقة لبحثك في الدليل الحالي.</div>`;
             }
-
-            display.style.display = 'block';
-            display.innerHTML = `
-                <div style="text-align:center; padding:40px; background:white; border-radius:20px;">
-                    <div class="loader-flag"></div>
-                    <p style="margin-top:15px; color:#64748b; font-weight:bold;">جاري مراجعة الدليل الوطني...</p>
-                </div>
-            `;
-
-            try {
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({prompt: query})
-                });
-                const data = await response.json();
-
-                if(data.found) {
-                    const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `
-                        <div class="doc-item">
-                            <span class="check-icon">✓</span>
-                            <span class="doc-text">${doc.trim()}</span>
-                        </div>
-                    `).join('');
-                    
-                    display.innerHTML = `
-                        <div class="result-card">
-                            <div class="result-header">
-                                <div class="header-icon">🇲🇦</div>
-                                <h3 class="result-title">${data.title}</h3>
-                            </div>
-                            
-                            <div class="docs-container">
-                                ${docsList}
-                            </div>
-                            
-                            <div class="info-box">
-                                <div class="info-row">
-                                    <span class="label">📍 جهة الإيداع:</span>
-                                    <span class="value">${data.location}</span>
-                                </div>
-                                ${data.cost ? `
-                                <div class="info-row">
-                                    <span class="label">💰 الواجبات:</span>
-                                    <span class="value">${data.cost}</span>
-                                </div>` : ''}
-                            </div>
-                            
-                            <button onclick="window.print()" class="print-btn">
-                                🖨️ تحميل الدليل (PDF)
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    display.innerHTML = `
-                        <div style="text-align:center; padding:40px; background:white; border-radius:20px; border: 1px solid #e2e8f0;">
-                            <p style="font-size:16px; color:#64748b;">🧐 لم نجد هذه المسطرة حالياً. حاول البحث بكلمات مثل "البطاقة الوطنية" أو "جواز السفر".</p>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                display.innerHTML = "<div style='text-align:center; color:red;'>تعذر الاتصال بالخادم الوطني.</div>";
-            }
+        } catch (e) {
+            display.innerHTML = "<div class='error-msg'>خطأ في الاتصال بالشبكة الوطنية.</div>";
         }
+    }
 
-        function fastAction(val) {
-            document.getElementById('user-query').value = val;
-            runSearch();
-        }
-    </script>
+    function fastAction(val) {
+        document.getElementById('user-query').value = val;
+        runSearch();
+    }
+</script>
 
-    <style>
-        .loader-flag { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #c1272d; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .result-card { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; animation: slideUp 0.5s ease; }
-        .result-header { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; }
-        .header-icon { font-size: 24px; }
-        .result-title { color: #1a5e32; margin: 0; font-size: 20px; font-weight: 800; }
-        
-        .doc-item { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 10px; transition: 0.3s; }
-        .doc-item:hover { background: #eff6ff; transform: translateX(-5px); }
-        .check-icon { color: #16a34a; font-weight: bold; }
-        .doc-text { color: #334155; font-size: 15px; font-weight: 500; }
-        
-        .info-box { background: #fff; border: 1px solid #e2e8f0; padding: 15px; border-radius: 18px; margin-top: 20px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .label { color: #64748b; font-size: 14px; font-weight: bold; }
-        .value { color: #1e293b; font-size: 14px; }
-        
-        .print-btn { width: 100%; margin-top: 25px; padding: 15px; border-radius: 15px; border: none; background: #1a5e32; color: white; font-weight: bold; cursor: pointer; font-family: 'Tajawal'; box-shadow: 0 4px 12px rgba(26, 94, 50, 0.2); }
-        
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+<style>
+    /* أنماط التصميم العظيم */
+    .royal-loader { width: 40px; height: 40px; border: 4px solid #f1f5f9; border-top: 4px solid #1a5e32; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .grand-result-card { background: white; border-radius: 35px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; animation: slideUp 0.6s ease; }
+    .card-header { display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #f8fafc; padding-bottom: 20px; margin-bottom: 25px; }
+    .card-header h2 { font-size: 22px; color: #1a5e32; margin: 0; font-weight: 800; }
+    
+    .doc-card-mini { display: flex; align-items: center; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 18px; margin-bottom: 12px; transition: 0.3s; border: 1px solid transparent; }
+    .doc-card-mini:hover { border-color: #1a5e32; background: white; transform: scale(1.02); }
+    .icon-check { background: #1a5e32; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+    
+    .card-footer { background: #fff9f0; padding: 20px; border-radius: 20px; border: 1px solid #fee2e2; margin-top: 25px; }
+    .footer-item { font-size: 14px; margin-bottom: 5px; color: #334155; }
+
+    .print-action-btn { width: 100%; margin-top: 25px; padding: 18px; border-radius: 20px; border: none; background: #1a5e32; color: white; font-weight: 800; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(26, 94, 50, 0.2); }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 {% endblock %}
+
