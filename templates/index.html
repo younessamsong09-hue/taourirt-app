@@ -1,40 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div style="margin: 20px 0;">
-        {% include "includes/search_bar.html" %}
+    <div style="text-align: center; margin: 30px 0;">
+        <h2 style="color: var(--main-green);">دليلك الذكي للمساطر الإدارية 🇲🇦</h2>
+        <p style="color: #666;">ابحث عن الوثائق المطلوبة في ثوانٍ</p>
     </div>
 
-    <div style="margin-top: 30px;">
-        <h3 style="font-size: 16px; color: #4a5568; margin-bottom: 15px;">📂 خدمات سريعة لتاوريرت:</h3>
-        {% include "includes/categories.html" %}
+    <div style="margin-bottom: 30px;">
+        {% include "includes/search_bar.html" ignore missing %}
     </div>
 
-    <div id="results-area" style="margin-top: 30px;">
+    <div style="margin-top: 20px;">
+        <p style="font-weight: bold; color: #444; margin-bottom: 15px;">📂 خدمات تهمك:</p>
+        {% include "includes/categories.html" ignore missing %}
+    </div>
+
+    <div id="results-area" style="margin-top: 30px; min-height: 100px;">
         <div id="results-display" style="display: none;"></div>
         {% include "includes/results_area.html" ignore missing %}
     </div>
 
-    {% include "includes/floating_assistant.html" ignore missing %}
-
     <script>
-        // دالة البحث الرئيسية
         async function runSearch() {
-            const queryInput = document.getElementById('user-query');
-            const query = queryInput.value.trim();
+            const query = document.getElementById('user-query').value.trim();
             const display = document.getElementById('results-display');
             
-            if(!query) {
-                queryInput.style.border = '2px solid red';
-                return;
-            }
+            if(!query) return;
 
             display.style.display = 'block';
-            display.innerHTML = `
-                <div style="text-align:center; padding:20px; background:white; border-radius:12px;">
-                    ⌛ جاري البحث عن "${query}"...
-                </div>
-            `;
+            display.innerHTML = '<div style="text-align:center; padding:20px;">🔍 جاري البحث...</div>';
 
             try {
                 const response = await fetch('/ask', {
@@ -46,33 +40,25 @@
 
                 if(data.found) {
                     display.innerHTML = `
-                        <div style="background:white; border-radius:15px; padding:20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-right: 5px solid var(--main-green); animation: slideIn 0.4s ease;">
+                        <div style="background:white; padding:25px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border-right:5px solid var(--main-green);">
                             <h3 style="color:var(--main-green); margin-top:0;">${data.title}</h3>
-                            <p style="color:#4a5568; line-height:1.6;">${data.docs}</p>
-                            <hr style="border:0; border-top:1px solid #eee;">
-                            <p style="font-size:14px;">📍 <b>المكان:</b> ${data.location}</p>
+                            <p style="line-height:1.6; color:#333;">${data.docs}</p>
+                            <div style="background:#f8fafc; padding:10px; border-radius:10px; font-size:14px; margin-top:15px;">
+                                📍 <b>المكان:</b> ${data.location}
+                            </div>
                         </div>
                     `;
                 } else {
-                    display.innerHTML = `
-                        <div style="text-align:center; padding:20px; background:white; border-radius:12px;">
-                            🧐 عذراً، لم نجد نتائج لـ "${query}". حاول بكلمات مثل: بطاقة، جواز، عقد.
-                        </div>
-                    `;
+                    display.innerHTML = '<div style="text-align:center; padding:20px; background:#fff1f2; border-radius:15px; color:#be123c;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>';
                 }
             } catch (e) {
-                display.innerHTML = "حدث خطأ في الاتصال بالسيرفر.";
+                display.innerHTML = "حدث خطأ في الاتصال.";
             }
         }
 
-        // دالة للأزرار السريعة في categories
         function fastAction(val) {
             document.getElementById('user-query').value = val;
             runSearch();
         }
     </script>
-
-    <style>
-        @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    </style>
 {% endblock %}
