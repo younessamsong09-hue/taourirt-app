@@ -1,37 +1,48 @@
-<style>
-    :root {
-        --main-green: #1a5e32;
-        --accent-gold: #d4af37;
-        --soft-bg: #f8fafc;
-        --glass: rgba(255, 255, 255, 0.9);
-    }
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تاوريرت هب - Taourirt Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-green: #1a5e32;
+            --accent-gold: #d4af37;
+            --soft-bg: #f8fafc;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-bottom: 3px solid var(--main-green);
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h2 style="margin:0; color:var(--main-green);">🇲🇦 تاوريرت هب</h2>
+    </nav>
 
-    body {
-        font-family: 'Tajawal', sans-serif;
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        min-height: 100vh;
-        margin: 0;
-    }
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
 
-    .navbar {
-        background: var(--glass);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(26, 94, 50, 0.1);
-        padding: 20px;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .navbar h2 {
-        font-size: 22px;
-        background: linear-gradient(to left, var(--main-green), #2d3436);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-</style>
-
+    <footer style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">
+        جميع الحقوق محفوظة - تاوريرت 2026
+    </footer>
+</body>
+</html>
