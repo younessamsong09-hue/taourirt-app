@@ -1,0 +1,29 @@
+<div id="ai-assistant" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; align-items: center; gap: 10px;">
+    
+    <div id="ai-bubble" style="background: white; padding: 10px 15px; border-radius: 15px 15px 0 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 13px; color: var(--main-green); font-weight: bold; border: 1px solid #eef2f7; opacity: 0; transform: translateX(20px); transition: 0.5s;">
+        أهلاً بك في تاوريرت هب! كيف أساعدك؟ 🇲🇦
+    </div>
+
+    <div onclick="toggleAI()" style="background: var(--main-green); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(26, 94, 50, 0.3); cursor: pointer; border: 3px solid white;">
+        <span style="font-size: 30px;">🤖</span>
+    </div>
+</div>
+
+<script>
+    // إظهار الفقاعة تلقائياً بعد 3 ثوانٍ
+    setTimeout(() => {
+        const bubble = document.getElementById('ai-bubble');
+        bubble.style.opacity = '1';
+        bubble.style.transform = 'translateX(0)';
+    }, 3000);
+
+    function toggleAI() {
+        const queryInput = document.getElementById('user-query');
+        queryInput.focus();
+        queryInput.placeholder = "أنا أسمعك.. ماذا تريد أن تعرف؟";
+        
+        // تأثير نبض خفيف عند الضغط
+        const bubble = document.getElementById('ai-bubble');
+        bubble.innerHTML = "اكتب سؤالك في خانة البحث وسأجد لك الحل فوراً! ✨";
+    }
+</script>
