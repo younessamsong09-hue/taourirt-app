@@ -5,19 +5,19 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
-# تحديد المسار الديناميكي لمجلد البيانات لضمان عمله على Vercel
+# تحديد مسار مجلد البيانات لضمان قراءته بشكل صحيح على Vercel
 BASE_PATH = os.path.join(os.path.dirname(__file__), 'national')
 
 def clean_text(text):
-    """تنظيف النص من الحركات والمسافات الزائدة لتوحيد البحث"""
+    """تنظيف النص لتوحيد عملية البحث وتجاهل الأخطاء البسيطة"""
     if not text: return ""
     text = text.lower().strip()
-    # إزالة ال التعريف لزيادة دقة البحث (اختياري)
+    # إزالة ال التعريف لجعل البحث أكثر مرونة (مثلاً: "جواز" تجد "الجواز")
     text = re.sub(r'^(ال)', '', text)
     return text
 
 def load_all_data():
-    """قراءة ومج جميع ملفات JSON في قاعدة بيانات واحدة مؤقتة"""
+    """قراءة كافة ملفات JSON من مجلد national ودمجها"""
     mega_database = {}
     if not os.path.exists(BASE_PATH):
         return mega_database
@@ -45,27 +45,30 @@ def ask():
         return jsonify({"found": False})
 
     database = load_all_data()
-    search_tokens = user_query.split() # تقسيم جملة المستخدم لعدة كلمات
+    # تقسيم بحث المستخدم لكلمات مفردة للبحث عنها
+    user_tokens = user_query.split()
 
     best_match = None
-    max_score = 0
+    highest_score = 0
 
     for key, value in database.items():
-        # إنشاء "وعاء نصي" يحتوي على كل المعلومات لزيادة فرص العثور على الكلمة
+        # إنشاء نص شامل للبحث داخل كل خدمة (العنوان + الكلمات المفتاحية + الكود)
         search_pool = clean_text(
-            value.get('title', '') + " " + 
-            " ".join(value.get('keywords', [])) + " " +
-            key
+            str(value.get('title', '')) + " " + 
+            " ".join(value.get('keywords', [])) + " " + 
+            str(key)
         )
 
-        # حساب عدد الكلمات المشتركة بين بحث المستخدم وقاعدة البيانات
-        score = sum(1 for token in search_tokens if token in search_pool)
+        # حساب عدد الكلمات التي تطابقت من بحث المستخدم مع قاعدة البيانات
+        match_score = sum(1 for token in user_tokens if token in search_pool)
 
-        if score > max_score:
-            max_score = score
+        # إذا وجدنا تطابقاً أفضل، نحفظ النتيجة
+        if match_score > highest_score:
+            highest_score = match_score
             best_match = value
 
-    if best_match and max_score > 0:
+    # إذا وجدنا نتيجة (على الأقل كلمة واحدة مطابقة)
+    if best_match and highest_score > 0:
         return jsonify({
             "found": True,
             "title": best_match.get('title'),
@@ -73,7 +76,7 @@ def ask():
             "cost": best_match.get('cost'),
             "time": best_match.get('time'),
             "location": best_match.get('location'),
-            "link": best_match.get('link')
+            "link": best_match.get('link', '#')
         })
             
     return jsonify({"found": False})
