@@ -3,34 +3,88 @@
 {% block content %}
     {% include "ticker.html" %}
 
-    <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Flag_of_Morocco.svg" width="50" style="border-radius:5px;">
-        <h1 style="color: var(--main); margin: 5px 0; font-size: 22px;">المنصة الوطنية</h1>
+    <div style="text-align: center; margin: 20px 0;">
+        <h1 style="color: var(--main); font-size: 24px;">المنصة الوطنية للحلول</h1>
+        <p style="color: #666; font-size: 14px;">دليلك الذكي للمساطر الإدارية بالمغرب</p>
     </div>
 
-    <div class="search-area" style="position:relative; margin-bottom:25px; display:flex; gap:10px;">
-        <input type="text" id="query" placeholder="اكتب أو تكلم بالدارجة..." style="flex:1; padding:15px; border-radius:15px; border:2px solid #eee; outline:none;">
-        <button onclick="startVoice()" style="background:none; border:none; font-size:22px; cursor:pointer;">🎤</button>
-        <button onclick="doSearch()" style="background:var(--main); color:white; border:none; padding:0 15px; border-radius:15px; font-weight:bold;">بحث</button>
+    <div class="search-section" style="position: relative; display: flex; gap: 10px; margin-bottom: 30px;">
+        <div style="position: relative; flex: 1;">
+            <input type="text" id="user-query" placeholder="اكتب مشكلتك أو تكلم بالدارجة..." 
+                   style="width: 100%; padding: 18px 45px 18px 15px; border-radius: 20px; border: 2px solid #eee; outline: none; box-sizing: border-box;">
+            <button id="mic-btn" onclick="startVoiceSearch()" 
+                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 22px; cursor: pointer;">🎤</button>
+        </div>
+        <button onclick="runSearch()" style="background: var(--main); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: bold; cursor: pointer;">بحث</button>
     </div>
 
     <p style="font-weight: bold; margin-bottom: 15px;">✨ حلول قانونية قد تهمك:</p>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-        <div class="card" onclick="fastSearch('استرجاع مال التأمين')">💰<br>استرجاع مال التأمين</div>
-        <div class="card" onclick="fastSearch('تعويض حفر الطرق')">🕳️<br>تعويض حفر الطرق</div>
-        <div class="card" onclick="fastSearch('رفع الرهن')">⚠️<br>رفع الرهن عن السيارة</div>
-        <div class="card" onclick="fastSearch('عطب الكهرباء')">🔌<br>تعويض عطب الكهرباء</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="quick-card" onclick="fastAction('تعويض حفر الطرق')">🕳️<br>تعويض حفر الطرق</div>
+        <div class="quick-card" onclick="fastAction('استرجاع مال التأمين')">💰<br>استرجاع مال التأمين</div>
+        <div class="quick-card" onclick="fastAction('رفع الرهن عن السيارة')">⚠️<br>رفع الرهن عن السيارة</div>
+        <div class="quick-card" onclick="fastAction('تعويض عطب الكهرباء')">🔌<br>تعويض عطب الكهرباء</div>
     </div>
 
-    <div id="result-box" style="display:none; margin-top:20px; border-top:2px solid #eee; padding-top:15px;"></div>
-
-    <script>
-        // هنا نضع كود الـ JavaScript (doSearch, startVoice, fastSearch)
-        // سأعطيك إياه بمجرد أن تنتهي من إنشاء الملفات أعلاه
-    </script>
+    <div id="results-display" style="display: none; margin-top: 25px; background: #fff; border-radius: 25px; padding: 20px; border: 2px solid #f0f0f0;"></div>
 
     <style>
-        .card { background:white; border:1px solid #eee; padding:20px; border-radius:25px; text-align:center; cursor:pointer; font-size:13px; font-weight:bold; transition:0.3s; }
-        .card:hover { border-color:var(--main); transform:translateY(-3px); }
+        .quick-card { background: white; border: 1px solid #eee; padding: 25px; border-radius: 25px; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
+        .quick-card:hover { border-color: var(--main); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .active-mic { color: var(--accent); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
+
+    <script>
+        // دالة البحث الصوتي بالدارجة
+        function startVoiceSearch() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if(!Speech) return alert("المتصفح لا يدعم الصوت");
+            const recognition = new Speech();
+            recognition.lang = 'ar-MA';
+            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-mic');
+            recognition.onresult = (e) => {
+                document.getElementById('user-query').value = e.results[0][0].transcript;
+                runSearch();
+            };
+            recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-mic');
+            recognition.start();
+        }
+
+        // دالة البحث الأساسية
+        async function runSearch() {
+            const q = document.getElementById('user-query').value;
+            const display = document.getElementById('results-display');
+            if(!q) return;
+
+            display.style.display = 'block';
+            display.innerHTML = '<p style="text-align:center">جاري البحث في المساطر الإدارية... ⏳</p>';
+
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({prompt: q})
+            });
+            const data = await response.json();
+
+            if(data.found) {
+                display.innerHTML = `
+                    <h3 style="color:var(--main); margin-top:0;">${data.title}</h3>
+                    <p><b>📄 الوثائق:</b> ${data.docs}</p>
+                    <p><b>💰 التكلفة:</b> ${data.cost}</p>
+                    <p><b>📍 المكان:</b> ${data.location}</p>
+                    <div style="margin-top:15px;">
+                        <button onclick="window.print()" style="padding:10px; border-radius:10px; border:1px solid #ddd; cursor:pointer;">📥 طباعة الدليل</button>
+                    </div>
+                `;
+            } else {
+                display.innerHTML = '<p style="color:red; text-align:center">عذراً، لم نجد معلومة مطابقة. حاول صياغة البحث بشكل مختلف.</p>';
+            }
+        }
+
+        function fastAction(text) {
+            document.getElementById('user-query').value = text;
+            runSearch();
+        }
+    </script>
 {% endblock %}
