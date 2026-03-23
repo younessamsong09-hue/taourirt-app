@@ -103,7 +103,48 @@
             display.innerHTML = "<div class='error'>عذراً، تعذر الاتصال بالسيرفر الوطني.</div>";
         }
     }
+document.addEventListener("DOMContentLoaded", function() {
+    // نبحث عن قسم الإحصائيات لضمان ظهور البطاقة تحته مباشرة
+    const statsSection = document.querySelector('.stats-bar-national') || document.querySelector('.stats-section');
+    
+    if (statsSection) {
+        const infoCard = document.createElement('div');
+        infoCard.style.cssText = "max-width:900px; margin:20px auto; padding:0 20px;";
+        infoCard.innerHTML = `
+            <div style="background: linear-gradient(135deg, #fff9f0 0%, #fff 100%); border: 1px solid #fee2e2; border-radius: 25px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); animation: slideUp 0.8s ease;">
+                <div style="font-size: 30px; background: white; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 5px 10px rgba(0,0,0,0.05);">💡</div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; color: #991b1b; font-size: 15px; font-weight: 800;">معلومة قانونية تهمك:</h4>
+                    <p id="dynamic-info" style="margin: 5px 0 0; color: #475569; font-size: 13.5px; line-height: 1.6; transition: opacity 0.5s ease;">
+                        هل تعلم أن السجل العدلي يمكن طلبه عبر الإنترنت واستلامه في بريدك الإلكتروني دون الحاجة للتنقل؟
+                    </p>
+                </div>
+            </div>
+        `;
+        statsSection.after(infoCard);
+    }
+});
 
+const nationalFacts = [
+    "البطاقة الوطنية الإلكترونية الجديدة تُغنيك عن تقديم شهادة الميلاد أو السكنى في معظم الإدارات العمومية.",
+    "يمكنك الآن طلب 'التنبر الإلكتروني' لجواز السفر عبر الإنترنت والدفع بواسطة البطاقة البنكية أو لدى وكالات القرب.",
+    "صلاحية شهادة السكنى المسلمة من طرف مصالح الأمن الوطني أو الدرك الملكي هي 3 أشهر فقط.",
+    "تطبيق 'هويتي الرقمية' يتيح لك الولوج لخدمات الضمان الاجتماعي (CNSS) وموقع 'إدارتي' بشكل آمن وسريع."
+];
+
+let factIndex = 0;
+setInterval(() => {
+    const p = document.getElementById('dynamic-info');
+    if(p) {
+        p.style.opacity = 0;
+        setTimeout(() => {
+            p.innerText = nationalFacts[factIndex];
+            p.style.opacity = 1;
+            factIndex = (factIndex + 1) % nationalFacts.length;
+        }, 500);
+    }
+}, 9000);
+    
     function fastAction(val) {
         document.getElementById('user-query').value = val;
         runSearch();
