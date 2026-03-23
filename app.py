@@ -1,33 +1,30 @@
-import os
+import json
 from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
+def search_in_json(query):
+    try:
+        with open('data/solutions.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            for item in data['solutions']:
+                if any(key in query for key in item['keywords']):
+                    return item
+    except:
+        return None
+    return None
+
 @app.route('/')
 def index():
-    try:
-        # يحاول فتح الفهرس، وإذا نجح سيظهر كل شيء
-        return render_template('index.html')
-    except Exception as e:
-        # إذا فشل، سيخبرك بالملف الناقص (مثلاً: footer.html not found)
-        return f"⚠️ عذراً يوسف، هناك خطأ في الربط بين الملفات: {str(e)}"
+    return render_template('index.html')
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    # كود البحث التجريبي ليتأكد أن المحرك يعمل
-    data = request.get_json()
-    query = data.get('prompt', '').lower()
+    user_data = request.get_json()
+    query = user_data.get('prompt', '').lower()
+    result = search_in_json(query)
     
-    if "حفر" in query:
-        return jsonify({
-            "found": True,
-            "title": "تعويض عن حفر الطرق 🕳️",
-            "docs": "صور الحفرة، محضر الدرك/الشرطة، وفواتير الإصلاح.",
-            "cost": "مجاني",
-            "location": "المحكمة الإدارية أو شركة الطرق السيار"
-        })
+    if result:
+        return jsonify({"found": True, **result})
     return jsonify({"found": False})
-
-if __name__ == '__main__':
-    app.run(debug=True)
     
