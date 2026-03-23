@@ -3,37 +3,32 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-def search_logic(user_query):
-    # تحويل النص لمدار صغير وحذف الفراغات
+def search_in_all_files(user_query):
     user_query = user_query.lower().strip()
     if not user_query: return None
     
-    try:
-        # الربط مع مجلد national وملف emergency_solutions.json
-        json_path = os.path.join('national', 'emergency_solutions.json')
-        
-        if not os.path.exists(json_path):
-            return None
+    national_dir = 'national'
+    if not os.path.exists(national_dir): return None
 
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            solutions = data.get('solutions', [])
-            
-            # تقطيع بحث المستخدم لكلمات (مثلاً: "تعويض الضو" تصبح "تعويض" و "الضو")
-            user_words = user_query.split()
-            
-            for item in solutions:
-                # جمع الكلمات المفتاحية والعنوان في نص واحد للبحث فيه
-                keywords_list = item.get('keywords', [])
-                title = item.get('title', '').lower()
-                search_content = " ".join(keywords_list) + " " + title
-                
-                # إذا وجدت أي كلمة من كلمات المستخدم داخل محتوى الحل
-                if any(word in search_content for word in user_words):
-                    return item
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
+    # البحث في كل ملفات الـ JSON داخل مجلد national
+    for filename in os.listdir(national_dir):
+        if filename.endswith('.json'):
+            file_path = os.path.join(national_dir, filename)
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    solutions = data.get('solutions', [])
+                    
+                    for item in solutions:
+                        # دمج الكلمات المفتاحية والعنوان للبحث
+                        search_pool = " ".join(item.get('keywords', [])) + " " + item.get('title', '').lower()
+                        
+                        # إذا وجدنا الكلمة في أي ملف
+                        user_words = user_query.split()
+                        if any(word in search_pool for word in user_words):
+                            return item
+            except:
+                continue
     return None
 
 @app.route('/')
@@ -44,15 +39,9 @@ def index():
 def ask():
     data = request.get_json()
     query = data.get('prompt', '')
-    result = search_logic(query)
+    result = search_in_all_files(query)
     
     if result:
-        return jsonify({
-            "found": True, 
-            "title": result.get('title'),
-            "docs": result.get('docs'),
-            "cost": result.get('cost'),
-            "location": result.get('location')
-        })
+        return jsonify({"found": True, **result})
     return jsonify({"found": False})
     
