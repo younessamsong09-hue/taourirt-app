@@ -3,30 +3,26 @@
 {% block content %}
 <div class="national-portal-container" style="direction: rtl; font-family: 'Tajawal', sans-serif;">
 
-    {% include "includes/urgent_ticker.html" %}
+    {% include "includes/urgent_news.html" %}
     {% include "includes/header.html" %}
     {% include "includes/search_bar.html" %}
-    {% include "includes/stats_bar.html" ignore missing %}
+    {% include "includes/stats_bar.html" %}
     {% include "includes/info_card.html" %}
+    {% include "includes/categories.html" %}
     {% include "includes/legal_library.html" %}
 
-    <section id="results-area" style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
-        <div id="results-display" style="display: none;"></div>
-    </section>
+    {% include "includes/results_area.html" %}
 
 </div>
 
 {% include "includes/scripts.html" %}
 
 <style>
-    /* أنماط ثابتة للمظهر الملكي */
+    /* الأنماط الأساسية لضمان عدم اختفاء التنسيق */
     .royal-card-final { background: white; border-radius: 35px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; }
     .loader-royal { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1a5e32; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    .btn-national-action { background: #1a5e32; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-    .doc-card-premium { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 8px; }
-    .check-box { background: #1a5e32; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .btn-national-action { background: #1a5e32; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
     @keyframes tickerMove { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 {% endblock %}
