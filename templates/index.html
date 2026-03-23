@@ -3,91 +3,21 @@
 {% block content %}
     {% include "ticker.html" %}
 
-    <div style="text-align: center; margin: 20px 0;">
-        <h1 style="color: var(--main); font-size: 24px;">المنصة الوطنية للحلول</h1>
-        <p style="color: #666; font-size: 14px;">دليلك الذكي للمساطر الإدارية بالمغرب</p>
+    <div style="text-align: center; margin: 30px 0;">
+        <h1 style="color: var(--main); font-size: 26px;">المنصة الوطنية للحلول</h1>
+        <p style="color: #666; font-size: 14px;">دليلك القانوني لتبسيط المساطر الإدارية</p>
     </div>
 
-    <div class="search-section" style="position: relative; display: flex; gap: 10px; margin-bottom: 30px;">
-        <div style="position: relative; flex: 1;">
-            <input type="text" id="user-query" placeholder="اكتب مشكلتك أو تكلم بالدارجة..." 
-                   style="width: 100%; padding: 18px 45px 18px 15px; border-radius: 20px; border: 2px solid #eee; outline: none; box-sizing: border-box;">
-            <button id="mic-btn" onclick="startVoiceSearch()" 
-                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 22px; cursor: pointer;">🎤</button>
-        </div>
-        <button onclick="runSearch()" style="background: var(--main); color: white; border: none; padding: 0 25px; border-radius: 20px; font-weight: bold; cursor: pointer;">بحث</button>
-    </div>
+    {% include "includes/search_bar.html" %}
+    {% include "includes/categories.html" %}
+    {% include "includes/results_area.html" %}
 
-    <p style="font-weight: bold; margin-bottom: 15px;">✨ حلول قانونية قد تهمك:</p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div class="quick-card" onclick="fastAction('تعويض حفر الطرق')">🕳️<br>تعويض حفر الطرق</div>
-        <div class="quick-card" onclick="fastAction('استرجاع مال التأمين')">💰<br>استرجاع مال التأمين</div>
-        <div class="quick-card" onclick="fastAction('رفع الرهن عن السيارة')">⚠️<br>رفع الرهن عن السيارة</div>
-        <div class="quick-card" onclick="fastAction('تعويض عطب الكهرباء')">🔌<br>تعويض عطب الكهرباء</div>
-    </div>
-
-    <div id="results-display" style="display: none; margin-top: 25px; background: #fff; border-radius: 25px; padding: 25px; border: 2px solid #f0f0f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05);"></div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <style>
-        .quick-card { background: white; border: 1px solid #eee; padding: 25px; border-radius: 25px; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
-        .quick-card:hover { border-color: var(--main); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .action-btn { padding: 10px 15px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; font-size: 13px; font-weight: bold; text-decoration: none; color: #333; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-visit { background: var(--main) !important; color: white !important; border: none !important; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .cat-card { background: white; border: 1px solid #f0f0f0; padding: 15px 10px; border-radius: 18px; text-align: center; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
+        .cat-card:hover { border-color: var(--main); background: #f9fffb; transform: translateY(-3px); }
+        .active-mic { color: #f44336; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
-
-    <script>
-        function startVoiceSearch() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Speech) return alert("المتصفح لا يدعم الصوت");
-            const recognition = new Speech();
-            recognition.lang = 'ar-MA';
-            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-mic');
-            recognition.onresult = (e) => {
-                document.getElementById('user-query').value = e.results[0][0].transcript;
-                runSearch();
-            };
-            recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-mic');
-            recognition.start();
-        }
-
-        async function runSearch() {
-            const q = document.getElementById('user-query').value;
-            const display = document.getElementById('results-display');
-            if(!q) return;
-
-            display.style.display = 'block';
-            display.innerHTML = '<p style="text-align:center">جاري البحث في 25 قاعدة بيانات... ⏳</p>';
-
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: q})
-            });
-            const data = await response.json();
-
-            if(data.found) {
-                display.innerHTML = `
-                    <h3 style="color:var(--main); margin-top:0;">${data.title}</h3>
-                    <div style="line-height: 1.8; margin-top: 15px;">
-                        <p><b>📄 الوثائق:</b> ${data.docs}</p>
-                        <p><b>💰 التكلفة:</b> ${data.cost}</p>
-                        <p><b>📍 المكان:</b> ${data.location}</p>
-                    </div>
-                    <div style="margin-top:20px; display: flex; flex-wrap: wrap; gap: 10px; border-top: 1px solid #eee; padding-top: 15px;">
-                        ${data.link ? `<a href="${data.link}" target="_blank" class="action-btn btn-visit">🌐 زيارة الموقع الرسمي</a>` : ''}
-                        <button onclick="window.print()" class="action-btn">📥 طباعة الدليل</button>
-                        <a href="https://wa.me/?text=${encodeURIComponent('طريقة ' + data.title + ': ' + (data.link || 'تجدها هنا'))}" target="_blank" class="action-btn" style="color:#25D366;">💬 مشاركة</a>
-                    </div>
-                `;
-            } else {
-                display.innerHTML = '<p style="color:red; text-align:center">عذراً، لم نجد معلومة مطابقة. حاول البحث بكلمة أخرى.</p>';
-            }
-        }
-
-        function fastAction(text) {
-            document.getElementById('user-query').value = text;
-            runSearch();
-        }
-    </script>
 {% endblock %}
