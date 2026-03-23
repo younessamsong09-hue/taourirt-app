@@ -4,12 +4,11 @@ from flask import Flask, render_template, request, jsonify
 app = Flask(__name__)
 
 def search_logic(user_query):
-    # تحويل النص لمدار صغير وحذف الفراغات
     user_query = user_query.lower().strip()
     if not user_query: return None
     
     try:
-        # الربط مع مجلد national الذي أنشأته
+        # هنا التعديل: السيرفر سيبحث الآن داخل مجلد national
         json_path = os.path.join('national', 'solutions.json')
         
         with open(json_path, 'r', encoding='utf-8') as f:
@@ -19,11 +18,12 @@ def search_logic(user_query):
                 # البحث في الكلمات المفتاحية والعنوان معاً
                 search_content = " ".join(item['keywords']) + " " + item['title'].lower()
                 
-                # إذا كانت كلمة المستخدم موجودة في محتوى الحل
-                if user_query in search_content:
+                # التحقق إذا كانت أي كلمة من بحث المستخدم موجودة
+                user_words = user_query.split()
+                if any(word in search_content for word in user_words):
                     return item
     except Exception as e:
-        print(f"Error reading from national folder: {e}")
+        print(f"Error: {e}")
         return None
     return None
 
@@ -40,7 +40,4 @@ def ask():
     if result:
         return jsonify({"found": True, **result})
     return jsonify({"found": False})
-
-if __name__ == '__main__':
-    app.run(debug=True)
     
