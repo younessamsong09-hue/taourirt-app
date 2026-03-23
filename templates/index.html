@@ -7,12 +7,12 @@
     </div>
 
     <div style="margin-bottom: 30px;">
-        {% include "includes/search_bar.html" ignore missing %}
+        {% include "includes/search_bar.html" %}
     </div>
 
     <div style="margin-top: 20px;">
         <p style="font-weight: bold; color: #444; margin-bottom: 15px;">📂 خدمات تهمك:</p>
-        {% include "includes/categories.html" ignore missing %}
+        {% include "includes/categories.html" %}
     </div>
 
     <div id="results-area" style="margin-top: 30px; min-height: 100px;">
@@ -49,7 +49,7 @@
                         </div>
                     `;
                 } else {
-                    display.innerHTML = '<div style="text-align:center; padding:20px; background:#fff1f2; border-radius:15px; color:#be123c;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>';
+                    display.innerHTML = '<div style="text-align:center; padding:20px; background:#fff1f2; border-radius:15px; color:#be123c;">🧐 لم نجد نتائج.</div>';
                 }
             } catch (e) {
                 display.innerHTML = "حدث خطأ في الاتصال.";
