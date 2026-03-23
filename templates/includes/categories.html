@@ -1,13 +1,15 @@
-<p style="font-weight: bold; margin-bottom: 15px; font-size: 15px;">📂 حلول قانونية قد تهمك:</p>
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-    <div class="cat-card" onclick="fastAction('تعويض حفر الطرق')">🕳️<br>تعويض حفر الطرق</div>
-    <div class="cat-card" onclick="fastAction('استرجاع مال التأمين')">💰<br>استرجاع مال التأمين</div>
-    <div class="cat-card" onclick="fastAction('رفع الرهن عن السيارة')">⚠️<br>رفع الرهن</div>
-    <div class="cat-card" onclick="fastAction('تعويض عطب الكهرباء')">🔌<br>عطب الكهرباء</div>
+<p style="font-weight: bold; margin-bottom: 15px; color: #4a5568;">📂 خدمات سريعة تهمك:</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <div onclick="fastAction('البطاقة الوطنية')" style="background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #e2e8f0; transition: 0.3s;" onmouseover="this.style.borderColor='var(--main-green)'" onmouseout="this.style.borderColor='#e2e8f0'">
+        🪪 <div style="font-size: 12px; margin-top: 5px;">البطاقة الوطنية</div>
+    </div>
+    <div onclick="fastAction('جواز السفر')" style="background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #e2e8f0;">
+        🛂 <div style="font-size: 12px; margin-top: 5px;">جواز السفر</div>
+    </div>
+    <div onclick="fastAction('رخصة السياقة')" style="background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #e2e8f0;">
+        🚗 <div style="font-size: 12px; margin-top: 5px;">رخصة السياقة</div>
+    </div>
+    <div onclick="fastAction('عقد الازدياد')" style="background: white; padding: 15px; border-radius: 15px; text-align: center; cursor: pointer; border: 1px solid #e2e8f0;">
+        📜 <div style="font-size: 12px; margin-top: 5px;">الحالة المدنية</div>
+    </div>
 </div>
-
-<style>
-    .cat-card { background: white; border: 1px solid #eee; padding: 20px; border-radius: 20px; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
-    .cat-card:hover { border-color: var(--main); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-</style>
-
