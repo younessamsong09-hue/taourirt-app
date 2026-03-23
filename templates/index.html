@@ -5,19 +5,11 @@
 
     <div style="text-align: center; margin: 30px 0;">
         <h1 style="color: var(--main); font-size: 26px;">المنصة الوطنية للحلول</h1>
-        <p style="color: #666; font-size: 14px;">دليلك القانوني لتبسيط المساطر الإدارية</p>
+        <p style="color: #666; font-size: 14px;">دليلك الذكي للمساطر الإدارية</p>
     </div>
 
     {% include "includes/search_bar.html" %}
     {% include "includes/categories.html" %}
     {% include "includes/results_area.html" %}
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-    <style>
-        .cat-card { background: white; border: 1px solid #f0f0f0; padding: 15px 10px; border-radius: 18px; text-align: center; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
-        .cat-card:hover { border-color: var(--main); background: #f9fffb; transform: translateY(-3px); }
-        .active-mic { color: #f44336; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-    </style>
 {% endblock %}
