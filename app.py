@@ -8,22 +8,23 @@ def search_logic(user_query):
     if not user_query: return None
     
     try:
-        # هنا التعديل: السيرفر سيبحث الآن داخل مجلد national
-        json_path = os.path.join('national', 'solutions.json')
+        # التعديل هنا: استخدام الاسم الصحيح للملف في مجلد national
+        json_path = os.path.join('national', 'emergency_solutions.json')
         
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             
-            for item in data['solutions']:
-                # البحث في الكلمات المفتاحية والعنوان معاً
-                search_content = " ".join(item['keywords']) + " " + item['title'].lower()
+            # التأكد من البحث في قائمة "solutions" داخل الملف
+            for item in data.get('solutions', []):
+                # البحث في الكلمات المفتاحية والعنوان
+                search_content = " ".join(item.get('keywords', [])) + " " + item.get('title', '').lower()
                 
-                # التحقق إذا كانت أي كلمة من بحث المستخدم موجودة
+                # البحث عن أي كلمة من كلمات المستخدم
                 user_words = user_query.split()
                 if any(word in search_content for word in user_words):
                     return item
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error reading national/emergency_solutions.json: {e}")
         return None
     return None
 
@@ -40,4 +41,7 @@ def ask():
     if result:
         return jsonify({"found": True, **result})
     return jsonify({"found": False})
+
+if __name__ == '__main__':
+    app.run(debug=True)
     
