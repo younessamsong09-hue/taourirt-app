@@ -7,28 +7,31 @@ app = Flask(__name__)
 # تحديد المسار لمجلد national
 BASE_PATH = os.path.join(os.path.dirname(__file__), 'national')
 
-def load_all_solutions():
-    """جمع كل الحلول من كل الملفات في قائمة واحدة كبيرة"""
+def load_mega_data():
+    """هذه الوظيفة تجمع الـ 25 ملفاً في قاعدة بيانات واحدة ضخمة"""
     all_solutions = []
     if not os.path.exists(BASE_PATH):
         return all_solutions
     
-    for root, dirs, files in os.walk(BASE_PATH):
-        for file in files:
-            if file.endswith('.json'):
-                try:
-                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                        file_data = json.load(f)
-                        # إذا كان الملف يحتوي على قائمة باسم solutions
-                        if 'solutions' in file_data:
-                            all_solutions.extend(file_data['solutions'])
-                        # إذا كان الملف عبارة عن قاموس مباشر (مثل كودك القديم)
-                        else:
-                            for key, val in file_data.items():
-                                if isinstance(val, dict):
-                                    all_solutions.append(val)
-                except Exception as e:
-                    print(f"Error loading {file}: {e}")
+    # الدوران على كل الملفات الـ 25
+    for file in os.listdir(BASE_PATH):
+        if file.endswith('.json'):
+            try:
+                with open(os.path.join(BASE_PATH, file), 'r', encoding='utf-8') as f:
+                    file_data = json.load(f)
+                    
+                    # إذا كان الملف يحتوي على قائمة solutions (النظام الجديد)
+                    if 'solutions' in file_data:
+                        all_solutions.extend(file_data['solutions'])
+                    
+                    # إذا كان الملف بنظام القاموس (النظام القديم)
+                    else:
+                        for key, val in file_data.items():
+                            if isinstance(val, dict):
+                                all_solutions.append(val)
+            except Exception as e:
+                print(f"Error loading {file}: {e}")
+                
     return all_solutions
 
 @app.route('/')
@@ -43,19 +46,21 @@ def ask():
     if not query:
         return jsonify({"found": False})
 
-    # الحصول على كل الحلول من كل الملفات في مجلد national
-    solutions = load_all_solutions()
+    # تحميل كل البيانات من الـ 25 ملفاً
+    database = load_mega_data()
     
-    # تقطيع جملة المستخدم لكلمات للبحث المرن
+    # البحث بذكاء: كلمة واحدة من المستخدم تكفي
     user_words = query.split()
     
-    for item in solutions:
-        # جمع كل النصوص الممكنة للبحث فيها (العنوان + الكلمات المفتاحية)
-        title = item.get('title', '').lower()
-        keywords = " ".join(item.get('keywords', [])).lower()
-        search_pool = title + " " + keywords
+    for item in database:
+        title = str(item.get('title', '')).lower()
+        # تحويل الكلمات المفتاحية لنص واحد للبحث فيه
+        keywords_list = item.get('keywords', [])
+        keywords_text = " ".join(keywords_list).lower()
         
-        # إذا وجدت أي كلمة من كلمات المستخدم في نص الحل
+        search_pool = title + " " + keywords_text
+        
+        # إذا وجدنا أي كلمة من بحث المستخدم داخل هذا الحل
         if any(word in search_pool for word in user_words):
             return jsonify({
                 "found": True,
