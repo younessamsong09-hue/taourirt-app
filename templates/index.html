@@ -1,34 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div style="text-align: center; margin: 30px 0;">
-        <h2 style="color: var(--main-green);">دليلك الذكي للمساطر الإدارية 🇲🇦</h2>
-        <p style="color: #666;">ابحث عن الوثائق المطلوبة في ثوانٍ</p>
-    </div>
-
-    <div style="margin-bottom: 30px;">
+    <div style="margin-top: 20px;">
         {% include "includes/search_bar.html" %}
     </div>
 
-    <div style="margin-top: 20px;">
-        <p style="font-weight: bold; color: #444; margin-bottom: 15px;">📂 خدمات تهمك:</p>
+    <div style="margin-top: 35px;">
+        <h3 style="font-size: 16px; color: #475569; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <span>📂</span> خدمات تهمك:
+        </h3>
         {% include "includes/categories.html" %}
     </div>
 
-    <div id="results-area" style="margin-top: 30px; min-height: 100px;">
+    <div id="results-area" style="margin-top: 35px; min-height: 200px;">
         <div id="results-display" style="display: none;"></div>
         {% include "includes/results_area.html" ignore missing %}
     </div>
 
+    {% include "includes/floating_assistant.html" ignore missing %}
+
     <script>
         async function runSearch() {
-            const query = document.getElementById('user-query').value.trim();
+            const queryInput = document.getElementById('user-query');
+            const query = queryInput.value.trim();
             const display = document.getElementById('results-display');
             
-            if(!query) return;
+            if(!query) {
+                queryInput.parentElement.style.borderColor = '#ef4444';
+                return;
+            }
 
+            // إظهار مؤشر التحميل
             display.style.display = 'block';
-            display.innerHTML = '<div style="text-align:center; padding:20px;">🔍 جاري البحث...</div>';
+            display.innerHTML = `
+                <div style="text-align:center; padding:40px; background:white; border-radius:20px; box-shadow:0 10px 20px rgba(0,0,0,0.05);">
+                    <div class="spinner"></div>
+                    <p style="margin-top:15px; color:#64748b;">جاري استخراج المعلومات...</p>
+                </div>
+            `;
 
             try {
                 const response = await fetch('/ask', {
@@ -39,20 +48,47 @@
                 const data = await response.json();
 
                 if(data.found) {
+                    // تحويل النصوص العادية إلى قائمة نقاط احترافية
+                    const docsList = data.docs.split('-').filter(i => i.trim() !== "").map(doc => `
+                        <div style="display: flex; align-items: center; gap: 12px; background: #fdfdfd; padding: 12px; border-radius: 12px; border-right: 4px solid var(--main-green); margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <span style="color: var(--main-green); font-size: 18px;">✓</span>
+                            <span style="color: #334155; font-size: 15px;">${doc.trim()}</span>
+                        </div>
+                    `).join('');
+                    
                     display.innerHTML = `
-                        <div style="background:white; padding:25px; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.05); border-right:5px solid var(--main-green);">
-                            <h3 style="color:var(--main-green); margin-top:0;">${data.title}</h3>
-                            <p style="line-height:1.6; color:#333;">${data.docs}</p>
-                            <div style="background:#f8fafc; padding:10px; border-radius:10px; font-size:14px; margin-top:15px;">
-                                📍 <b>المكان:</b> ${data.location}
+                        <div style="background: white; border-radius: 25px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; animation: fadeInUp 0.5s ease;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                                <div style="background: #e6f4ea; padding: 10px; border-radius: 12px; font-size: 20px;">📋</div>
+                                <h3 style="color: var(--main-green); margin: 0; font-size: 20px; font-weight: 700;">${data.title}</h3>
                             </div>
+                            
+                            <div style="margin-bottom: 25px;">
+                                ${docsList}
+                            </div>
+                            
+                            <div style="background: #f8fafc; padding: 18px; border-radius: 18px; border: 1px dashed #cbd5e1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                                    <span style="font-size: 16px;">📍</span>
+                                    <span style="font-size: 14px; color: #64748b;"><b>المكان:</b></span>
+                                </div>
+                                <p style="margin: 0 25px 0 0; font-size: 15px; color: #1e293b;">${data.location}</p>
+                            </div>
+                            
+                            <button onclick="window.print()" style="width: 100%; margin-top: 25px; padding: 15px; border-radius: 15px; border: none; background: #f1f5f9; color: #475569; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Tajawal';">
+                                🖨️ حفظ نسخة PDF
+                            </button>
                         </div>
                     `;
                 } else {
-                    display.innerHTML = '<div style="text-align:center; padding:20px; background:#fff1f2; border-radius:15px; color:#be123c;">🧐 لم نجد نتائج.</div>';
+                    display.innerHTML = `
+                        <div style="text-align:center; padding:40px; background:white; border-radius:20px;">
+                            <p style="font-size:16px; color:#64748b;">🧐 لم أجد معلومات دقيقة، جرب البحث بكلمة واحدة مثل "جواز" أو "بطاقة".</p>
+                        </div>
+                    `;
                 }
             } catch (e) {
-                display.innerHTML = "حدث خطأ في الاتصال.";
+                display.innerHTML = "خطأ في الاتصال بالخادم.";
             }
         }
 
@@ -61,4 +97,10 @@
             runSearch();
         }
     </script>
+
+    <style>
+        .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--main-green); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 {% endblock %}
