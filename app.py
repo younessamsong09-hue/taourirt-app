@@ -3,35 +3,16 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-def search_logic(user_query):
-    # تنظيف النص لضمان أفضل نتيجة بحث
-    user_query = user_query.lower().strip()
-    if not user_query: return None
-    
+def get_data():
+    # هذا المسار يقرأ من مجلد national وملف emergency_solutions.json
+    path = os.path.join('national', 'emergency_solutions.json')
     try:
-        # الربط المباشر مع ملفك في مجلد national
-        json_path = os.path.join('national', 'emergency_solutions.json')
-        
-        if not os.path.exists(json_path):
-            print(f"الملف غير موجود في المسار: {json_path}")
-            return None
-
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            
-            # البحث داخل قائمة 'solutions'
-            for item in data.get('solutions', []):
-                # جمع الكلمات المفتاحية والعنوان للبحث الشامل
-                search_pool = " ".join(item.get('keywords', [])) + " " + item.get('title', '').lower()
-                
-                # فحص كلمات المستخدم كلمة بكلمة
-                user_words = user_query.split()
-                if any(word in search_pool for word in user_words):
-                    return item
-    except Exception as e:
-        print(f"خطأ في قراءة ملف JSON: {e}")
-        return None
-    return None
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f).get('solutions', [])
+    except:
+        return []
+    return []
 
 @app.route('/')
 def index():
@@ -40,10 +21,19 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.get_json()
-    query = data.get('prompt', '')
-    result = search_logic(query)
+    query = data.get('prompt', '').lower().strip()
     
-    if result:
-        return jsonify({"found": True, **result})
+    solutions = get_data()
+    
+    # محرك بحث ذكي يقطع كلمات المستخدم ويبحث عنها
+    user_words = query.split()
+    for item in solutions:
+        search_pool = " ".join(item.get('keywords', [])) + " " + item.get('title', '').lower()
+        if any(word in search_pool for word in user_words):
+            return jsonify({"found": True, **item})
+            
     return jsonify({"found": False})
+
+if __name__ == '__main__':
+    app.run(debug=True)
     
