@@ -1,7 +1,19 @@
-<div style="background: white; padding: 20px; border-radius: 50px; box-shadow: var(--shadow); display: flex; align-items: center; border: 2px solid var(--main-green); margin-bottom: 30px;">
-    <input type="text" id="user-query" placeholder="اكتب مشكلتك هنا (مثلاً: رخصة السياقة)..." 
-           style="flex: 1; border: none; outline: none; font-family: 'Tajawal'; font-size: 16px; padding: 0 15px;">
-    <button onclick="runSearch()" style="background: var(--main-green); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;">
+<div class="search-container" style="position: relative; margin: 40px 0;">
+    <input type="text" id="user-query" 
+           placeholder="ما الذي يشغل بالك اليوم؟ (مثلاً: ضياع البطاقة)" 
+           style="width: 100%; padding: 20px 60px 20px 25px; border-radius: 30px; border: 2px solid transparent; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.05); font-size: 16px; outline: none; transition: 0.4s; box-sizing: border-box;">
+    
+    <button onclick="runSearch()" 
+            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: var(--main-green); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(26, 94, 50, 0.3);">
         🔍
     </button>
 </div>
+
+<style>
+    #user-query:focus {
+        border-color: var(--main-green);
+        box-shadow: 0 15px 35px rgba(26, 94, 50, 0.1);
+        transform: translateY(-2px);
+    }
+</style>
+
