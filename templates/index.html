@@ -3,36 +3,25 @@
 {% block content %}
     {% include 'includes/header.html' %}
     {% include 'includes/search_bar.html' %}
-    
-    <div id="results-area" style="max-width: 900px; margin: 20px auto; padding: 0 20px; display: none;">
-        </div>
 
-    <section id="community-section" style="max-width: 900px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
-        <h3 style="color: #1a5e32; display: flex; align-items: center; gap: 10px;">
-            <span>🗣️</span> صوت المجتمع (تبليغ ونقاش حي)
-        </h3>
-        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">شاركنا حالة الأسعار أو جودة الخدمات في مدينتك الآن:</p>
+    <main class="main-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
         
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="live-report" placeholder="مثلاً: ثمن الخضر في سوق المسيرة اليوم..." style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd;">
-            <button onclick="sendReport()" style="background: #1a5e32; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-weight: bold;">نشر الآن</button>
+        <section id="results-area" class="dynamic-section" style="display: none; margin-bottom: 40px;">
+            </section>
+
+        {% include 'includes/services_hub.html' %}
+
+        {% include 'includes/community_voice.html' %}
+
+        <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            {% include 'includes/stats_bar.html' %}
+            {% include 'includes/urgent_news.html' %}
         </div>
 
-        <div id="reports-feed" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-            <div style="background: #f9fbf9; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px;">
-                📍 <strong>تحديث رسمي:</strong> مرحباً بكم في منصة وطني، شاركونا أخبار مدينتكم.
-            </div>
-        </div>
-    </section>
-
-    {% include 'includes/categories.html' %}
-
-    {% include 'includes/stats_bar.html' %}
-
-    <div class="extra-sections" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-        {% include 'includes/urgent_news.html' %}
         {% include 'includes/legal_library.html' %}
-    </div>
 
+    </main>
+
+    {% include 'includes/footer.html' %}
     {% include 'includes/scripts.html' %}
 {% endblock %}
