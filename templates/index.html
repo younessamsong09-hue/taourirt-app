@@ -5,22 +5,23 @@
     {% include 'includes/search_bar.html' %}
 
     <main class="main-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-        
         <section id="results-area" class="dynamic-section" style="display: none; margin-bottom: 40px;">
-            </section>
+        </section>
 
         {% include 'includes/services_hub.html' %}
-
         {% include 'includes/community_voice.html' %}
-
+        
         <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
             {% include 'includes/stats_bar.html' %}
             {% include 'includes/urgent_news.html' %}
         </div>
 
         {% include 'includes/legal_library.html' %}
-
     </main>
+
+    <div id="generator-template-source" style="display: none;">
+        {% include 'includes/generator.html' %}
+    </div>
 
     {% include 'includes/footer.html' %}
     {% include 'includes/scripts.html' %}
