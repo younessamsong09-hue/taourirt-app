@@ -1,39 +1,36 @@
 import os
 import json
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# المسار الرئيسي لقاعدة البيانات
-BASE_PATH = os.path.join(os.path.dirname(__file__), 'national')
-
-def get_all_solutions():
-    """وظيفة ذكية تقرأ أي عدد من الملفات في أي مجلد فرعي داخل national"""
+# دالة ذكية لقراءة جميع القطاعات الوطنية من مجلد national
+def get_national_data():
     all_data = []
-    if not os.path.exists(BASE_PATH):
+    # تحديد مسار المجلد (يعمل على الكمبيوتر وعلى Vercel)
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    folder_path = os.path.join(base_path, 'national')
+    
+    if not os.path.exists(folder_path):
         return all_data
 
-    for root, dirs, files in os.walk(BASE_PATH):
-        for file in files:
-            if file.endswith('.json'):
-                file_path = os.path.join(root, file)
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = json.load(f)
-                        if isinstance(content, dict) and 'solutions' in content:
-                            all_data.extend(content['solutions'])
-                        elif isinstance(content, list):
-                            all_data.extend(content)
-                        elif isinstance(content, dict):
-                            # التعامل مع الملفات التي تحتوي على كائن مباشر
-                            if 'title' in content:
-                                all_data.append(content)
-                            else:
-                                for key, value in content.items():
-                                    if isinstance(value, dict):
-                                        all_data.append(value)
-                except Exception as e:
-                    print(f"⚠️ خطأ في قراءة الملف {file}: {e}")
+    # قراءة كل ملف JSON على حدة (ملف للهوية، ملف للحقوق، ملف للمال...)
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):
+            try:
+                with open(os.path.join(folder_path, filename), 'r', encoding='utf-8') as f:
+                    content = json.load(f)
+                    # دمج البيانات مع الحفاظ على مصدرها (اسم الملف يعبر عن القسم)
+                    category_name = filename.replace('.json', '')
+                    if isinstance(content, list):
+                        for item in content:
+                            item['category'] = category_name
+                            all_data.append(item)
+                    else:
+                        content['category'] = category_name
+                        all_data.append(content)
+            except Exception as e:
+                print(f"Error reading {filename}: {e}")
     return all_data
 
 @app.route('/')
@@ -42,38 +39,25 @@ def index():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    try:
-        data = request.get_json()
-        user_query = data.get('prompt', '').strip().lower()
-        
-        if not user_query:
-            return jsonify({"found": False})
+    user_query = request.json.get('prompt', '').lower()
+    data_source = get_national_data()
+    results = []
 
-        all_solutions = get_all_solutions()
-        search_words = user_query.split()
+    # محرك بحث ذكي يبحث في العناوين والكلمات المفتاحية والمحتوى
+    for item in data_source:
+        search_space = f"{item.get('title', '')} {item.get('keywords', '')} {item.get('docs', '')}".lower()
+        if user_query in search_space:
+            results.append(item)
 
-        for item in all_solutions:
-            title = str(item.get('title', '')).lower()
-            keywords = " ".join(item.get('keywords', [])).lower()
-            location = str(item.get('location', '')).lower()
-            
-            search_pool = f"{title} {keywords} {location}"
-            
-            if any(word in search_pool for word in search_words):
-                return jsonify({
-                    "found": True,
-                    "title": item.get('title'),
-                    "docs": item.get('docs'),
-                    "cost": item.get('cost'),
-                    "location": item.get('location'),
-                    "time": item.get('time', 'غير محدد'),
-                    "link": item.get('link', '')
-                })
-
-        return jsonify({"found": False})
-    except Exception as e:
-        return jsonify({"found": False, "error": str(e)}), 500
+    if results:
+        # إرجاع النتيجة الأكثر صلة (أو قائمة نتائج)
+        return jsonify({
+            "found": True, 
+            "results": results[:3] # إرجاع أفضل 3 نتائج
+        })
+    
+    return jsonify({"found": False, "message": "لم نجد نتيجة دقيقة، حاول تغيير كلمات البحث."})
 
 if __name__ == '__main__':
     app.run(debug=True)
-                                     
+    
