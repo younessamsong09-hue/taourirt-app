@@ -1,16 +1,16 @@
 <script>
-    // دالة البحث الرئيسية التي تتواصل مع app.py
+    // 1. الدالة الأساسية للبحث التي تنادي السيرفر
     async function runSearch() {
-        const query = document.getElementById('user-query').value;
-        const display = document.getElementById('results-area'); // تأكد أن id مطابق لملف results_area.html
-        
-        if (!query.trim()) return;
+        const queryInput = document.getElementById('user-query'); // تأكد أن id المربع في search_bar.html هو user-query
+        const query = queryInput.value.trim();
+        const displayArea = document.getElementById('results-area'); // الحاوية الكبيرة
+        const container = document.getElementById('results-container'); // مكان صب النتائج
 
-        display.style.display = 'block';
-        display.innerHTML = `
-            <div style="text-align:center; padding: 20px;">
-                <div style="color: #1a5e32; font-weight: bold;">جاري البحث في الأرشيف الوطني...</div>
-            </div>`;
+        if (!query) return;
+
+        // إظهار منطقة النتائج وتصفيرها مع وضع رسالة انتظار
+        displayArea.style.display = 'block';
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#1a5e32;">جاري استخراج البيانات الرسمية...</div>';
 
         try {
             const response = await fetch('/ask', {
@@ -21,34 +21,35 @@
             const data = await response.json();
 
             if (data.found) {
-                display.innerHTML = '';
+                container.innerHTML = ''; // مسح رسالة الانتظار
                 data.results.forEach(item => {
-                    display.innerHTML += `
-                        <div class="result-card" style="background: white; padding: 25px; border-radius: 15px; border-right: 10px solid #1a5e32; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
-                            <h2 style="color: #1a5e32; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">${item.title}</h2>
-                            <p style="line-height: 1.8; color: #444; font-size: 16px;">${item.docs}</p>
-                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 14px;">
-                                <span style="background: #eef7f1; padding: 5px 15px; border-radius: 5px; color: #1a5e32;">📍 المكان: ${item.location}</span>
-                                <span style="background: #fff9e6; padding: 5px 15px; border-radius: 5px; color: #b08d1a;">💰 التكلفة: ${item.cost}</span>
+                    container.innerHTML += `
+                        <div class="result-card" style="background:#fff; border-radius:15px; padding:25px; margin-bottom:20px; border-right:10px solid #1a5e32; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+                            <h2 style="color:#1a5e32; margin-top:0;">${item.title}</h2>
+                            <p style="line-height:1.8; color:#333;">${item.docs}</p>
+                            <div style="background:#f9f9f9; padding:10px; border-radius:8px; font-size:14px; margin-top:10px;">
+                                <strong>📍 المكان:</strong> ${item.location} | <strong>💰 التكلفة:</strong> ${item.cost}
                             </div>
+                            ${item.link ? `<a href="${item.link}" target="_blank" style="display:inline-block; margin-top:15px; color:#d4af37; font-weight:bold; text-decoration:none;">🔗 الرابط الرسمي</a>` : ''}
                         </div>
                     `;
                 });
-                display.scrollIntoView({ behavior: 'smooth' });
+                // تمرير الشاشة للنتائج بسلاسة
+                displayArea.scrollIntoView({ behavior: 'smooth' });
             } else {
-                display.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;">لم نجد نتائج دقيقة. جرب استخدام كلمات مثل: رشوة، جواز، محامي، أو تصفح الأقسام أدناه.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">لم نجد بيانات دقيقة لهذه الكلمة. حاول كتابة: رشوة، باسبور، أو سيارة.</div>';
             }
         } catch (error) {
-            display.innerHTML = '<div style="padding: 20px; color: red; text-align: center;">خطأ فني في الاتصال بالمرجع الوطني.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:red;">عذراً، وقع خطأ في الاتصال بقاعدة البيانات.</div>';
         }
     }
 
-    // وظيفة الضغط على البطاقات
+    // 2. دالة الربط بين البطاقة والبحث (التي تناديها عند الضغط على البطاقة)
     function quickSearch(term) {
-        const searchInput = document.getElementById('user-query');
-        if (searchInput) {
-            searchInput.value = term;
-            runSearch();
+        const input = document.getElementById('user-query');
+        if (input) {
+            input.value = term;
+            runSearch(); // تشغيل البحث فوراً بعد ملء المربع
         }
     }
 </script>
