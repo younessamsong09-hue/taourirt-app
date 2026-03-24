@@ -1,16 +1,22 @@
-<div id="complaint-generator" style="background: #fdfdfd; border: 2px dashed #d4af37; padding: 25px; border-radius: 15px; margin-top: 30px;">
-    <h3 style="color: #1a5e32; text-align: center;">🏛️ مولد الطلبات والشكايات القانونية</h3>
-    <p style="font-size: 14px; text-align: center; color: #666;">أدخل بياناتك وسيقوم النظام بتحرير الشكاية لك فوراً</p>
-    
-    <input type="text" id="user-name" placeholder="الاسم الكامل" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
-    <select id="complaint-type" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
-        <option value="رشوة">تبليغ عن رشوة</option>
-        <option value="تماطل">شكاية بسبب التماطل الإداري</option>
-        <option value="شطط">شكاية شطط في استعمال السلطة</option>
-    </select>
-    
-    <button onclick="generatePDF()" style="width: 100%; background: #1a5e32; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-        تحرير وتحميل الشكاية (PDF)
-    </button>
+<div style="background:#f9f9f9; padding:20px; border-radius:15px; border:2px dashed #d4af37;">
+    <h3 style="color:#1a5e32;">✍️ محرر الوثائق الرسمي</h3>
+    <input type="text" id="pdf-name" placeholder="الاسم الكامل" style="width:100%; padding:10px; margin-bottom:10px;">
+    <textarea id="pdf-details" placeholder="اشرح مشكلتك هنا..." style="width:100%; height:80px;"></textarea>
+    <button onclick="generatePDF()" style="background:#1a5e32; color:white; width:100%; padding:10px; border:none; border-radius:5px; cursor:pointer;">تحميل الشكاية PDF</button>
 </div>
 
+<script>
+function generatePDF() {
+    const name = document.getElementById('pdf-name').value;
+    const desc = document.getElementById('pdf-details').value;
+    const element = document.createElement('div');
+    element.innerHTML = `<div style="direction:rtl; padding:40px;">
+        <h2 style="text-align:center;">شكاية رسمية</h2>
+        <p><strong>من السيد:</strong> ${name}</p>
+        <p><strong>الموضوع:</strong> تظلم إداري</p>
+        <p style="line-height:2;">${desc}</p>
+        <p style="margin-top:50px;">التوقيع: .................</p>
+    </div>`;
+    html2pdf().from(element).save('shkaya_watani.pdf');
+}
+</script>
