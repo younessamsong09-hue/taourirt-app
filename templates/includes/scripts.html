@@ -2,61 +2,48 @@
 
 <script>
 async function runSearch(customQuery = null) {
-    const queryInput = document.getElementById('user-query');
+    const query = customQuery || document.getElementById('user-query').value;
     const resArea = document.getElementById('results-area');
-    const query = customQuery || (queryInput ? queryInput.value.trim() : "");
-
-    if (!query) return;
+    if(!query) return;
 
     resArea.style.display = 'block';
-    resArea.innerHTML = '<div style="text-align:center; padding:20px; color:#1a5e32; font-weight:bold;">🔎 جاري البحث في الأرشيف الوطني...</div>';
+    resArea.innerHTML = '<div class="loader">جاري البحث في الأرشيف...</div>';
 
     try {
         const response = await fetch('/ask', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: query })
+            body: JSON.stringify({prompt: query})
         });
         
         const data = await response.json();
         resArea.innerHTML = '';
 
-        if (data.found) {
+        if(data.found) {
             data.results.forEach(item => {
-                if (item.type === "generator") {
-                    // حل مشكلة الـ 500: استدعاء المحتوى من عنصر مخفي في الصفحة
-                    const genTemplate = document.getElementById('generator-source');
-                    if(genTemplate) {
-                        resArea.innerHTML = genTemplate.innerHTML;
-                    } else {
-                        resArea.innerHTML = '<p>خطأ: ملف المولد غير متاح حالياً.</p>';
-                    }
+                if(item.type === "generator") {
+                    // تصحيح: جلب المحتوى من القسم المخفي في index.html
+                    const template = document.getElementById('generator-template-source').innerHTML;
+                    resArea.innerHTML = template;
                 } else {
+                    // عرض النتيجة العادية
                     resArea.innerHTML += `
-                        <div class="result-card" style="background:#fff; border-radius:20px; padding:25px; margin-bottom:15px; border-right:10px solid #1a5e32; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-                            <h2 style="color:#1a5e32; margin-bottom:10px;">${item.title}</h2>
-                            <p style="line-height:1.6; color:#444;">${item.docs}</p>
-                            <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee; display:flex; justify-content:space-between;">
-                                <span>📍 ${item.location || 'غير محدد'}</span>
-                                <span style="font-weight:bold; color:#d4af37;">💰 التكلفة: ${item.cost || 'مجاني'}</span>
+                        <div class="result-card" style="background:white; padding:30px; border-radius:20px; border-right:10px solid #1a5e32; margin-bottom:15px;">
+                            <h2 style="color:#1a5e32;">${item.title}</h2>
+                            <p>${item.docs}</p>
+                            <div style="margin-top:20px; padding-top:15px; border-top:1px solid #eee; display:flex; justify-content:space-between;">
+                                <span>📍 ${item.location || 'تاوريرت'}</span>
+                                <span>💰 ${item.cost || 'مجاني'}</span>
                             </div>
                         </div>`;
                 }
             });
             resArea.scrollIntoView({ behavior: 'smooth' });
         } else {
-            resArea.innerHTML = `<div style="text-align:center; padding:30px; background:white; border-radius:20px;">${data.message}</div>`;
+            resArea.innerHTML = `<p style="text-align:center;">${data.message}</p>`;
         }
-    } catch (error) {
-        resArea.innerHTML = '<div style="color:red; text-align:center;">حدث خطأ في الاتصال بالسيرفر.</div>';
-    }
-}
-
-function quickSearch(term) {
-    const input = document.getElementById('user-query');
-    if (input) {
-        input.value = term;
-        runSearch(term);
+    } catch (e) {
+        resArea.innerHTML = '<p style="color:red; text-align:center;">خطأ في الاتصال بالخادم.</p>';
     }
 }
 </script>
