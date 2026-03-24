@@ -2,14 +2,20 @@
 
 {% block content %}
     {% include 'includes/header.html' %}
+
     {% include 'includes/search_bar.html' %}
     
-    <div id="results-area" style="max-width: 850px; margin: 20px auto; padding: 0 20px; display: none;"></div>
+    <div id="results-area" style="max-width: 900px; margin: 20px auto; padding: 0 20px; display: none; min-height: 100px;">
+        </div>
 
     {% include 'includes/categories.html' %}
-    
-    {% include 'includes/urgent_news.html' %}
-    {% include 'includes/legal_library.html' %}
+
+    <div class="extra-sections" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        {% include 'includes/urgent_news.html' %}
+        {% include 'includes/legal_library.html' %}
+        {% include 'includes/stats_bar.html' %}
+    </div>
 
     {% include 'includes/scripts.html' %}
+
 {% endblock %}
