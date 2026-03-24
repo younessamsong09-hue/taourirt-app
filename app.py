@@ -5,24 +5,27 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# قاعدة بيانات حية مؤقتة لـ "صوت المجتمع" (الجمع والنقاش)
+# قاعدة بيانات مؤقتة لخدمة "صوت المجتمع"
 community_reports = [
-    {"text": "مرحباً بكم في منصة وطني - تاوريرت الحية", "time": "الآن"}
+    {"text": "مرحباً بكم في منصة وثيقتي - تاوريرت الحية", "time": "الآن"}
 ]
 
-# دالة ذكية لجلب البيانات من أي ملف JSON في مجلد national
+# دالة ذكية لجلب البيانات من مجلد national لضمان التوافق مع Vercel
 def fetch_all_data():
     all_records = []
+    # استخدام app.root_path لضمان الوصول للمجلد في السيرفر
     base_path = os.path.join(app.root_path, 'national')
+    
     if os.path.exists(base_path):
         for file in os.listdir(base_path):
-            if file.endswith('.json'):
-                with open(os.path.join(base_path, file), 'r', encoding='utf-8') as f:
-                    try:
+            if file.endswith(".json"):
+                try:
+                    with open(os.path.join(base_path, file), 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         if isinstance(data, list):
                             all_records.extend(data)
-                    except: continue
+                except:
+                    continue
     return all_records
 
 @app.route('/')
@@ -33,44 +36,39 @@ def index():
 def ask():
     user_input = request.json.get('prompt', '').lower()
     
-    # 1. نظام التحرير الفوري (المحرر الذكي)
-    trigger_words = ['شكاية', 'اكتب', 'تحرير', 'تظلم', 'طلب']
+    # محرك التوجيه الذكي للمولدات (مثل الطلبات الخطية)
+    trigger_words = ['طلب', 'شكاية', 'تحرير', 'اكتب']
     if any(word in user_input for word in trigger_words):
         return jsonify({
             "found": True,
             "results": [{
                 "type": "generator",
                 "title": "محرر الوثائق القانونية الفوري",
-                "docs": "النظام جاهز لتحرير وثيقتك الرسمية. يرجى ملء البيانات أدناه لتحويلها إلى PDF جاهز للطباعة."
+                "docs": "النظام جاهز لتحرير طلبك. يرجى ملء البيانات أدناه."
             }]
         })
 
-    # 2. نظام البحث والتحليل (قاموس الدارجة + البيانات الضخمة)
-    dialect = {"لاكارط": "بطاقة", "برمي": "رخصة", "باسبور": "جواز", "قهوة": "رشوة"}
-    for k, v in dialect.items():
-        if k in user_input: user_input += f" {v}"
-
+    # محرك البحث في البيانات الوطنية
     all_data = fetch_all_data()
-    # بحث ذكي يعتمد على العنوان أو الكلمات الدالة
     matches = [
         item for item in all_data 
         if user_input in item.get('keywords', '').lower() or user_input in item.get('title', '').lower()
     ]
-
+    
     if matches:
         return jsonify({"found": True, "results": matches[:5]})
     
-    return jsonify({"found": False, "message": "لم نجد نتائج دقيقة، جرب كلمات مثل: الأسعار، ضياع، أو دعم."})
+    return jsonify({"found": False, "message": "لم نجد نتائج دقيقة، جرب كلمات مثل: جواز سفر، بطاقة وطنية..."})
 
 @app.route('/report', methods=['POST'])
 def handle_report():
     msg = request.json.get('text')
     if msg:
         new_entry = {"text": msg, "time": datetime.now().strftime("%H:%M")}
-        community_reports.insert(0, new_entry) # يظهر الأحدث أولاً
+        community_reports.insert(0, new_entry)
         return jsonify({"status": "success", "all_reports": community_reports[:10]})
     return jsonify({"status": "error"})
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
     
