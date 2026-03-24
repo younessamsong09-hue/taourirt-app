@@ -1,50 +1,49 @@
 <script>
-    async function runSearch() {
-        const query = document.getElementById('user-query').value.trim();
-        const display = document.getElementById('results-display');
-        if(!query || !display) return;
+// دالة البحث
+async function runSearch() {
+    const queryInput = document.getElementById('user-query');
+    const display = document.getElementById('results-display');
+    if (!queryInput || !display) return;
 
-        display.style.display = 'block';
-        display.innerHTML = `<div style="text-align:center; padding:60px;"><div class="loader-royal"></div></div>`;
+    const query = queryInput.value.trim();
+    if (!query) return;
 
-        try {
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: query})
-            });
-            const data = await response.json();
+    display.style.display = 'block';
+    display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div></div>';
 
-            if(data.found) {
-                const docsList = data.docs.split('-').filter(s => s.trim() !== "").map(doc => `
-                    <div class="doc-card-premium"><div class="check-box">✓</div><p>${doc.trim()}</p></div>
-                `).join('');
-                
-                display.innerHTML = `
-                    <div class="royal-card-final">
-                        <h2 style="color:#1a5e32;">${data.title}</h2>
-                        <div class="docs-grid">${docsList}</div>
-                        <div style="margin-top:15px; padding:15px; background:#f8fafc; border-radius:15px; font-size:14px;">
-                            📍 <b>الإيداع:</b> ${data.location}
-                        </div>
-                    </div>`;
-            } else {
-                display.innerHTML = `<div class="royal-card-final">🧐 لم نجد نتائج لـ "${query}"</div>`;
-            }
-        } catch (e) {
-            display.innerHTML = `<div class="royal-card-final" style="color:red;">❌ خطأ في السيرفر.</div>`;
+    try {
+        const response = await fetch('/ask', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({prompt: query})
+        });
+        const data = await response.json();
+
+        if (data.found) {
+            display.innerHTML = `
+                <div class="royal-card-final" style="animation: slideUp 0.5s ease;">
+                    <h2 style="color:#1a5e32; margin-bottom:15px;">${data.title}</h2>
+                    <p style="line-height:1.8; color:#334155;">${data.docs}</p>
+                    <div style="margin-top:20px; padding:15px; background:#f8fafc; border-radius:15px; font-size:14px; border-right:4px solid #b4914c;">
+                        📍 <b>مكان الإيداع:</b> ${data.location}
+                    </div>
+                </div>`;
+        } else {
+            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم يتم العثور على نتائج. جرب كلمات مثل "بطاقة" أو "جواز".</div>';
         }
+    } catch (e) {
+        display.innerHTML = '<div class="royal-card-final" style="color:red; text-align:center;">❌ خطأ في الاتصال بالسيرفر.</div>';
     }
+}
 
-    function openRealBook(type) {
-        const urls = {
-            'family': 'https://www.justice.gov.ma/wp-content/uploads/2022/12/moudawana-al-ousra-ar.pdf',
-            'criminal': 'https://www.sgg.gov.ma/Portals/0/Lois/code_penal_ar.pdf',
-            'constitution': 'https://www.sgg.gov.ma/Portals/0/constitution/constitution_2011_Ar.pdf'
-        };
-        const display = document.getElementById('results-display');
-        display.style.display = 'block';
-        display.innerHTML = `<div class="royal-card-final"><iframe src="${urls[type]}" style="width:100%; height:600px; border:none; border-radius:15px;"></iframe></div>`;
-        window.scrollTo({ top: display.offsetTop - 80, behavior: 'smooth' });
-    }
+// دالة فتح الكتب (الحل النهائي للورقة الحزينة)
+function openRealBook(type) {
+    const urls = {
+        'family': 'https://www.justice.gov.ma/wp-content/uploads/2022/12/moudawana-al-ousra-ar.pdf',
+        'criminal': 'http://www.sgg.gov.ma/Portals/0/Lois/code_penal_ar.pdf',
+        'constitution': 'http://www.sgg.gov.ma/Portals/0/constitution/constitution_2011_Ar.pdf'
+    };
+    // فتح الرابط في نافذة جديدة يمنع حظر المواقع الحكومية
+    window.open(urls[type], '_blank');
+}
 </script>
