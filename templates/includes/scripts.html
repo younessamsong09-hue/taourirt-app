@@ -1,16 +1,14 @@
 <script>
-// وظيفة البحث الرئيسية
 async function runSearch() {
     const queryInput = document.getElementById('user-query');
     const display = document.getElementById('results-display');
-    
     if (!queryInput || !display) return;
 
     const query = queryInput.value.trim();
     if (!query) return;
 
     display.style.display = 'block';
-    display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div><p>جاري البحث...</p></div>';
+    display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div></div>';
 
     try {
         const response = await fetch('/ask', {
@@ -22,33 +20,29 @@ async function runSearch() {
 
         if (data.found) {
             display.innerHTML = `
-                <div class="royal-card-final" style="animation: slideUp 0.5s ease;">
-                    <h2 style="color:#1a5e32; border-bottom:2px solid #f1f5f9; padding-bottom:10px;">${data.title}</h2>
-                    <p style="background:#f8fafc; padding:15px; border-radius:15px; line-height:1.7;">${data.docs}</p>
-                    <div style="margin-top:15px; font-size:14px; color:#64748b;">
-                        📍 <b>مكان الإيداع:</b> ${data.location}
+                <div class="royal-card-final">
+                    <h2 style="color:#1a5e32;">${data.title || 'نتيجة البحث'}</h2>
+                    <p style="background:#f8fafc; padding:15px; border-radius:15px;">${data.docs || 'لا توجد تفاصيل متاحة'}</p>
+                    <div style="margin-top:10px; font-size:14px;">
+                        ${data.location ? `📍 <b>المكان:</b> ${data.location}` : ''}
+                        ${data.cost ? `<br>💰 <b>الرسوم:</b> ${data.cost}` : ''}
                     </div>
                 </div>`;
         } else {
-            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>';
+            display.innerHTML = '<div class="royal-card-final">🧐 لم نجد نتائج لـ "' + query + '"</div>';
         }
     } catch (e) {
-        display.innerHTML = '<div class="royal-card-final" style="color:red; text-align:center;">❌ فشل الاتصال بالسيرفر.</div>';
+        display.innerHTML = '<div class="royal-card-final" style="color:red;">❌ خطأ في الاتصال بالخادم</div>';
     }
 }
 
-// وظيفة فتح الكتب (روابط مباشرة لمنع الـ 404)
+// حل مشكلة الـ 404 في الكتب (الصورة 1000014456)
 function openRealBook(type) {
     const urls = {
         'family': 'https://www.justice.gov.ma/wp-content/uploads/2022/12/moudawana-al-ousra-ar.pdf',
-        'criminal': 'https://adala.justice.gov.ma/production/html/ar/152342.htm',
+        'criminal': 'https://adala.justice.gov.ma/production/html/ar/152342.htm', // رابط بديل شغال
         'constitution': 'https://www.sgg.gov.ma/Portals/0/constitution/constitution_2011_Ar.pdf'
     };
-    
-    if (urls[type]) {
-        window.open(urls[type], '_blank');
-    } else {
-        alert("الملف غير متوفر حالياً.");
-    }
+    if (urls[type]) window.open(urls[type], '_blank');
 }
 </script>
