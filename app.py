@@ -1,59 +1,74 @@
-import os, json
+import os
+import json
 from flask import Flask, render_template, request, jsonify
+from datetime import datetime
 
 app = Flask(__name__)
 
-# مخزن مؤقت لتبليغات المواطنين (الجمع والنقاش)
-live_reports = []
+# قاعدة بيانات حية مؤقتة لـ "صوت المجتمع" (الجمع والنقاش)
+community_reports = [
+    {"text": "مرحباً بكم في منصة وطني - تاوريرت الحية", "time": "الآن"}
+]
 
-def get_national_data():
-    all_data = []
-    base_dir = os.path.join(app.root_path, 'national')
-    if os.path.exists(base_dir):
-        for filename in os.listdir(base_dir):
-            if filename.endswith('.json'):
-                with open(os.path.join(base_dir, filename), 'r', encoding='utf-8') as f:
-                    all_data.extend(json.load(f))
-    return all_data
+# دالة ذكية لجلب البيانات من أي ملف JSON في مجلد national
+def fetch_all_data():
+    all_records = []
+    base_path = os.path.join(app.root_path, 'national')
+    if os.path.exists(base_path):
+        for file in os.listdir(base_path):
+            if file.endswith('.json'):
+                with open(os.path.join(base_path, file), 'r', encoding='utf-8') as f:
+                    try:
+                        data = json.load(f)
+                        if isinstance(data, list):
+                            all_records.extend(data)
+                    except: continue
+    return all_records
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', reports=community_reports)
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    user_query = request.json.get('prompt', '').lower()
+    user_input = request.json.get('prompt', '').lower()
     
-    # 1. قاموس الدارجة المغربية
-    dialect_map = {"لاكارط": "بطاقة", "برمي": "رخصة", "باسبور": "جواز", "قهوة": "رشوة", "تدويرة": "رشوة"}
-    for k, v in dialect_map.items():
-        if k in user_query: user_query += f" {v}"
+    # 1. نظام التحرير الفوري (المحرر الذكي)
+    trigger_words = ['شكاية', 'اكتب', 'تحرير', 'تظلم', 'طلب']
+    if any(word in user_input for word in trigger_words):
+        return jsonify({
+            "found": True,
+            "results": [{
+                "type": "generator",
+                "title": "محرر الوثائق القانونية الفوري",
+                "docs": "النظام جاهز لتحرير وثيقتك الرسمية. يرجى ملء البيانات أدناه لتحويلها إلى PDF جاهز للطباعة."
+            }]
+        })
 
-    # 2. منطق التحرير الحي (إذا طلب المواطن كتابة شكاية)
-    if any(word in user_query for word in ['اكتب', 'شكاية', 'تحرير']):
-        return jsonify({"found": True, "results": [{
-            "title": "محرر الشكايات الفوري",
-            "type": "generator",
-            "docs": "يمكنك الآن تحرير شكايتك الرسمية فوراً بلمسة واحدة.",
-            "location": "منصة وطني - تاوريرت",
-            "cost": "بالمجان"
-        }]})
+    # 2. نظام البحث والتحليل (قاموس الدارجة + البيانات الضخمة)
+    dialect = {"لاكارط": "بطاقة", "برمي": "رخصة", "باسبور": "جواز", "قهوة": "رشوة"}
+    for k, v in dialect.items():
+        if k in user_input: user_input += f" {v}"
 
-    # 3. البحث العادي في البيانات
-    data_source = get_national_data()
-    results = [item for item in data_source if user_query in str(item).lower()]
+    all_data = fetch_all_data()
+    # بحث ذكي يعتمد على العنوان أو الكلمات الدالة
+    matches = [
+        item for item in all_data 
+        if user_input in item.get('keywords', '').lower() or user_input in item.get('title', '').lower()
+    ]
+
+    if matches:
+        return jsonify({"found": True, "results": matches[:5]})
     
-    if results:
-        return jsonify({"found": True, "results": results[:3]})
-    return jsonify({"found": False, "message": "لم نجد نتائج، جرب كلمات أخرى."})
+    return jsonify({"found": False, "message": "لم نجد نتائج دقيقة، جرب كلمات مثل: الأسعار، ضياع، أو دعم."})
 
-# 4. استقبال تبليغات "صوت تاوريرت"
 @app.route('/report', methods=['POST'])
-def add_report():
-    report = request.json.get('text')
-    if report:
-        live_reports.insert(0, report) # إضافة التبليغ في الأعلى
-        return jsonify({"status": "success", "reports": live_reports[:5]})
+def handle_report():
+    msg = request.json.get('text')
+    if msg:
+        new_entry = {"text": msg, "time": datetime.now().strftime("%H:%M")}
+        community_reports.insert(0, new_entry) # يظهر الأحدث أولاً
+        return jsonify({"status": "success", "all_reports": community_reports[:10]})
     return jsonify({"status": "error"})
 
 if __name__ == '__main__':
