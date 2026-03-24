@@ -1,13 +1,15 @@
 <script>
-// دالة البحث
+// وظيفة البحث الرئيسية
 async function runSearch() {
     const queryInput = document.getElementById('user-query');
     const display = document.getElementById('results-display');
+    
     if (!queryInput || !display) return;
 
     const query = queryInput.value.trim();
     if (!query) return;
 
+    // إظهار مؤشر التحميل
     display.style.display = 'block';
     display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div></div>';
 
@@ -21,29 +23,31 @@ async function runSearch() {
 
         if (data.found) {
             display.innerHTML = `
-                <div class="royal-card-final" style="animation: slideUp 0.5s ease;">
-                    <h2 style="color:#1a5e32; margin-bottom:15px;">${data.title}</h2>
-                    <p style="line-height:1.8; color:#334155;">${data.docs}</p>
-                    <div style="margin-top:20px; padding:15px; background:#f8fafc; border-radius:15px; font-size:14px; border-right:4px solid #b4914c;">
+                <div class="royal-card-final" style="animation: slideUp 0.5s ease-out;">
+                    <h2 style="color:#1a5e32; border-bottom:1px solid #eee; padding-bottom:10px;">${data.title}</h2>
+                    <p style="background:#f8fafc; padding:15px; border-radius:15px; line-height:1.6;">${data.docs}</p>
+                    <div style="margin-top:15px; font-size:14px; color:#64748b;">
                         📍 <b>مكان الإيداع:</b> ${data.location}
                     </div>
                 </div>`;
         } else {
-            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم يتم العثور على نتائج. جرب كلمات مثل "بطاقة" أو "جواز".</div>';
+            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>';
         }
     } catch (e) {
-        display.innerHTML = '<div class="royal-card-final" style="color:red; text-align:center;">❌ خطأ في الاتصال بالسيرفر.</div>';
+        display.innerHTML = '<div class="royal-card-final" style="color:red; text-align:center;">❌ فشل الاتصال بالسيرفر.</div>';
     }
 }
 
-// دالة فتح الكتب (الحل النهائي للورقة الحزينة)
+// وظيفة فتح الكتب (روابط محدثة وشغالة)
 function openRealBook(type) {
     const urls = {
         'family': 'https://www.justice.gov.ma/wp-content/uploads/2022/12/moudawana-al-ousra-ar.pdf',
-        'criminal': 'http://www.sgg.gov.ma/Portals/0/Lois/code_penal_ar.pdf',
-        'constitution': 'http://www.sgg.gov.ma/Portals/0/constitution/constitution_2011_Ar.pdf'
+        'criminal': 'https://adala.justice.gov.ma/production/html/ar/152342.htm',
+        'constitution': 'https://www.sgg.gov.ma/Portals/0/constitution/constitution_2011_Ar.pdf'
     };
-    // فتح الرابط في نافذة جديدة يمنع حظر المواقع الحكومية
-    window.open(urls[type], '_blank');
+    
+    if (urls[type]) {
+        window.open(urls[type], '_blank');
+    }
 }
 </script>
