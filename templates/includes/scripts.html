@@ -7,43 +7,36 @@ async function runSearch(customQuery = null) {
     if(!query) return;
 
     resArea.style.display = 'block';
-    resArea.innerHTML = '<div class="loader">جاري البحث في الأرشيف...</div>';
+    resArea.innerHTML = '<p style="text-align:center;">جاري البحث...</p>';
 
-    try {
-        const response = await fetch('/ask', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({prompt: query})
+    const response = await fetch('/ask', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt: query})
+    });
+    const data = await response.json();
+    resArea.innerHTML = '';
+
+    if(data.found) {
+        data.results.forEach(item => {
+            if(item.type === "generator") {
+                // جلب المولد من المكان المخفي في index.html
+                resArea.innerHTML = document.getElementById('generator-template-source').innerHTML;
+            } else {
+                resArea.innerHTML += `
+                <div class="result-card" style="background:white; padding:20px; border-radius:15px; margin-bottom:15px; border-right:8px solid #1a5e32;">
+                    <h3>${item.title}</h3>
+                    <p>${item.docs}</p>
+                    <small>📍 ${item.location} | 💰 ${item.cost}</small>
+                </div>`;
+            }
         });
-        
-        const data = await response.json();
-        resArea.innerHTML = '';
-
-        if(data.found) {
-            data.results.forEach(item => {
-                if(item.type === "generator") {
-                    // تصحيح: جلب المحتوى من القسم المخفي في index.html
-                    const template = document.getElementById('generator-template-source').innerHTML;
-                    resArea.innerHTML = template;
-                } else {
-                    // عرض النتيجة العادية
-                    resArea.innerHTML += `
-                        <div class="result-card" style="background:white; padding:30px; border-radius:20px; border-right:10px solid #1a5e32; margin-bottom:15px;">
-                            <h2 style="color:#1a5e32;">${item.title}</h2>
-                            <p>${item.docs}</p>
-                            <div style="margin-top:20px; padding-top:15px; border-top:1px solid #eee; display:flex; justify-content:space-between;">
-                                <span>📍 ${item.location || 'تاوريرت'}</span>
-                                <span>💰 ${item.cost || 'مجاني'}</span>
-                            </div>
-                        </div>`;
-                }
-            });
-            resArea.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            resArea.innerHTML = `<p style="text-align:center;">${data.message}</p>`;
-        }
-    } catch (e) {
-        resArea.innerHTML = '<p style="color:red; text-align:center;">خطأ في الاتصال بالخادم.</p>';
+        resArea.scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+function quickSearch(term) {
+    document.getElementById('user-query').value = term;
+    runSearch(term);
 }
 </script>
