@@ -1,5 +1,5 @@
 <script>
-// وظيفة البحث
+// وظيفة البحث الرئيسية
 async function runSearch() {
     const queryInput = document.getElementById('user-query');
     const display = document.getElementById('results-display');
@@ -9,9 +9,8 @@ async function runSearch() {
     const query = queryInput.value.trim();
     if (!query) return;
 
-    // إظهار التحميل
     display.style.display = 'block';
-    display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div><p>جاري البحث في قاعدة البيانات...</p></div>';
+    display.innerHTML = '<div style="text-align:center; padding:50px;"><div class="loader-royal"></div><p>جاري البحث...</p></div>';
 
     try {
         const response = await fetch('/ask', {
@@ -24,19 +23,21 @@ async function runSearch() {
         if (data.found) {
             display.innerHTML = `
                 <div class="royal-card-final" style="animation: slideUp 0.5s ease;">
-                    <h2 style="color:#1a5e32; border-bottom:1px solid #eee; padding-bottom:10px;">${data.title}</h2>
+                    <h2 style="color:#1a5e32; border-bottom:2px solid #f1f5f9; padding-bottom:10px;">${data.title}</h2>
                     <p style="background:#f8fafc; padding:15px; border-radius:15px; line-height:1.7;">${data.docs}</p>
-                    <div style="margin-top:15px; font-size:14px;">📍 <b>مكان الإيداع:</b> ${data.location}</div>
+                    <div style="margin-top:15px; font-size:14px; color:#64748b;">
+                        📍 <b>مكان الإيداع:</b> ${data.location}
+                    </div>
                 </div>`;
         } else {
-            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم نجد نتائج. جرب كلمات بسيطة.</div>';
+            display.innerHTML = '<div class="royal-card-final" style="text-align:center;">🧐 لم نجد نتائج، جرب كلمات أخرى.</div>';
         }
     } catch (e) {
         display.innerHTML = '<div class="royal-card-final" style="color:red; text-align:center;">❌ فشل الاتصال بالسيرفر.</div>';
     }
 }
 
-// وظيفة فتح الكتب في نافذة جديدة (لتجنب الورقة الحزينة)
+// وظيفة فتح الكتب (روابط مباشرة لمنع الـ 404)
 function openRealBook(type) {
     const urls = {
         'family': 'https://www.justice.gov.ma/wp-content/uploads/2022/12/moudawana-al-ousra-ar.pdf',
@@ -46,10 +47,8 @@ function openRealBook(type) {
     
     if (urls[type]) {
         window.open(urls[type], '_blank');
+    } else {
+        alert("الملف غير متوفر حالياً.");
     }
-}
-
-function startVoice() {
-    alert("ميزة البحث الصوتي ستفعل قريباً!");
 }
 </script>
