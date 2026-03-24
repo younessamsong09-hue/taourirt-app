@@ -1,0 +1,74 @@
+<section id="community-hub" style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-top: 40px; border: 1px solid #f0f0f0;">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="color: #1a5e32; margin: 0; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🗣️</span> صوت تاوريرت (نقاش حي)
+        </h3>
+        <span style="background: #e8f5e9; color: #1a5e32; padding: 5px 15px; border-radius: 50px; font-size: 12px; font-weight: bold;">تحديث مباشر</span>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">شاركنا حالة الأسعار، جودة الخدمات، أو أي استفسار محلي:</p>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="report-input" placeholder="مثلاً: ثمن الطماطم في سوق الأحد 5 دراهم..." 
+                   style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-family: inherit;">
+            <button onclick="publishReport()" 
+                    style="background: #1a5e32; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+                نشر الآن
+            </button>
+        </div>
+    </div>
+
+    <div id="reports-list" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+        {% for report in reports %}
+        <div class="report-item" style="background: white; border-bottom: 1px solid #eee; padding: 15px 10px; transition: 0.3s;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <p style="margin: 0; color: #333; line-height: 1.6; font-size: 15px;">{{ report.text }}</p>
+                <small style="color: #999; font-size: 11px; white-space: nowrap; margin-right: 10px;">{{ report.time }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<style>
+    .report-item:hover { background: #fdfdfd; }
+    #reports-list::-webkit-scrollbar { width: 5px; }
+    #reports-list::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+</style>
+
+<script>
+async function publishReport() {
+    const input = document.getElementById('report-input');
+    const text = input.value.trim();
+    
+    if(!text) return;
+
+    try {
+        const response = await fetch('/report', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text})
+        });
+        const data = await response.json();
+        
+        if(data.status === 'success') {
+            input.value = '';
+            // تحديث القائمة فوراً دون إعادة تحميل الصفحة
+            updateReportsList(data.all_reports);
+        }
+    } catch (e) { console.error("Error publishing report"); }
+}
+
+function updateReportsList(reports) {
+    const list = document.getElementById('reports-list');
+    list.innerHTML = reports.map(r => `
+        <div class="report-item" style="background: white; border-bottom: 1px solid #eee; padding: 15px 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <p style="margin: 0; color: #333; line-height: 1.6; font-size: 15px;">${r.text}</p>
+                <small style="color: #999; font-size: 11px; margin-right: 10px;">${r.time}</small>
+            </div>
+        </div>
+    `).join('');
+}
+</script>
