@@ -1,57 +1,52 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
-    async function runSearch() {
-        // 1. الحصول على نص البحث من المربع
-        const queryInput = document.getElementById('user-query');
-        if (!queryInput) return;
-        const query = queryInput.value.trim();
+async function runSearch(customQuery = null) {
+    const query = customQuery || document.getElementById('user-query').value;
+    const resArea = document.getElementById('results-area');
+    if(!query) return;
 
-        // 2. تحديد مكان عرض النتائج (يجب أن يكون موجوداً في results_area.html)
-        const displayArea = document.getElementById('results-area');
-        
-        if (!query) return;
+    resArea.style.display = 'block';
+    resArea.innerHTML = 'جاري المعالجة...';
 
-        // إظهار منطقة النتائج ووضع رسالة انتظار ملكية
-        displayArea.style.display = 'block';
-        displayArea.innerHTML = '<div style="text-align:center; padding:20px; color:#1a5e32; font-weight:bold;">جاري استخراج البيانات من الأرشيف الوطني...</div>';
+    const response = await fetch('/ask', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt: query})
+    });
+    const data = await response.json();
 
-        try {
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({prompt: query})
-            });
-            const data = await response.json();
-
-            if (data.found) {
-                displayArea.innerHTML = ''; // تصفير الرسالة
-                data.results.forEach(item => {
-                    displayArea.innerHTML += `
-                        <div class="result-card" style="background:#fff; border-radius:20px; padding:30px; margin-bottom:25px; border-right:12px solid #1a5e32; box-shadow:0 10px 30px rgba(0,0,0,0.08); animation: fadeIn 0.5s;">
-                            <h2 style="color:#1a5e32; border-bottom:2px solid #f0f0f0; padding-bottom:10px; margin-top:0;">${item.title}</h2>
-                            <p style="line-height:1.9; color:#333; font-size:17px; text-align:justify;">${item.docs}</p>
-                            <div style="background:#f9fbf9; padding:15px; border-radius:12px; border:1px solid #eef2ee; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:20px;">
-                                <div><strong style="color:#1a5e32;">📍 المكان:</strong> ${item.location}</div>
-                                <div><strong style="color:#1a5e32;">💰 التكلفة:</strong> ${item.cost}</div>
-                            </div>
-                            ${item.link ? `<a href="${item.link}" target="_blank" style="display:inline-block; margin-top:20px; background:linear-gradient(135deg, #d4af37 0%, #b08d1a 100%); color:white; padding:10px 25px; border-radius:50px; text-decoration:none; font-weight:bold;">🔗 الرابط الرسمي</a>` : ''}
-                        </div>
-                    `;
-                });
-                displayArea.scrollIntoView({ behavior: 'smooth' });
+    if(data.found) {
+        resArea.innerHTML = '';
+        data.results.forEach(item => {
+            if(item.type === "generator") {
+                // عرض المحرر الحي
+                resArea.innerHTML += `{% include 'includes/generator.html' %}`;
             } else {
-                displayArea.innerHTML = '<div style="text-align:center; padding:40px; color:#666; background:white; border-radius:20px;">لم نجد نتائج دقيقة. جرب كلمات أخرى مثل (رشوة، باسبور، سيارة، ضياع).</div>';
+                // عرض النتيجة العادية
+                resArea.innerHTML += `
+                <div class="result-card" style="background:white; padding:20px; border-radius:15px; margin-bottom:15px; border-right:8px solid #1a5e32; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                    <h3>${item.title}</h3>
+                    <p>${item.docs}</p>
+                    <small>📍 ${item.location} | 💰 ${item.cost}</small>
+                </div>`;
             }
-        } catch (error) {
-            displayArea.innerHTML = '<div style="text-align:center; padding:20px; color:red;">خطأ فني: تأكد من تشغيل السيرفر أو صحة مسار الملفات.</div>';
-        }
+        });
     }
+}
 
-    // ربط البطاقات بالبحث
-    function quickSearch(term) {
-        const input = document.getElementById('user-query');
-        if (input) {
-            input.value = term;
-            runSearch();
-        }
+// دالة إرسال التبليغات (الجمع والنقاش)
+async function sendReport() {
+    const text = document.getElementById('live-report').value;
+    const response = await fetch('/report', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: text})
+    });
+    const data = await response.json();
+    if(data.status === 'success') {
+        alert("تم نشر صوتك في ركن المجتمع");
+        location.reload(); 
     }
+}
 </script>
